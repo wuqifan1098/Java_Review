@@ -8,20 +8,22 @@ CountDownLatch可以理解为一个计数器在初始化时设置初始值，**�
 
 核心方法两个：countDown()和await()
 
-    countDown():使CountDownLatch维护的内部计数器减1,每个被等待的线程完成的时候调用
-    await():线程在执行到CountDownLatch的时候会将此线程置于休眠
+```java
+countDown():使CountDownLatch维护的内部计数器减1,每个被等待的线程完成的时候调用
+await():线程在执行到CountDownLatch的时候会将此线程置于休眠
+```
 
 案例场景：视频会议室里等与会人员到齐了会议才能开始。
 
 ## 3.CountDownLatch 和CyclicBarrier的不同之处?
 
-| CountDownLatch                                | CyclicBarrier                         |
-|-----------------------------------------------|---------------------------------------|
-| 减计数方式	                                        | 加计数方式                                 |
-| 计算为0时释放所有等待的线程	                               | 计数达到指定值时释放所有等待线程                      |
-| 计数为0时，无法重置	                                   | 计数达到指定值时，计数置为0重新开始                    |
-| 调用countDown()方法计数减一，调用await()方法只进行阻塞，对计数没任何影响 | 调用await()方法计数加1，若加1后的值不等于构造方法的值，则线程阻塞 |
-| 不可重复利用                                        | 可重复利用                                 |
+| CountDownLatch                                               | CyclicBarrier                                                |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 减计数方式                                                   | 加计数方式                                                   |
+| 计算为0时释放所有等待的线程                                  | 计数达到指定值时释放所有等待线程                             |
+| 计数为0时，无法重置                                          | 计数达到指定值时，计数置为0重新开始                          |
+| **调用countDown()方法计数减一，调用await()方法只进行阻塞，对计数没任何影响** | **调用await()方法计数加1，若加1后的值不等于构造方法的值，则线程阻塞** |
+| 不可重复利用                                                 | 可重复利用                                                   |
 
 适用场景：
 
@@ -29,7 +31,7 @@ CountDownLatch ：一个线程**需要等待其它线程完成操作后**，才�
 
 CyclicBarrier ：需要**所有的子任务都完成时**，才执行主任务。
 
-## 4.多线程情况下怎么实现线程等待？（美团）
+## 4.多线程情况下怎么实现线程等待？（美团，海康威视）
 
 CountDownLatch
 
@@ -179,7 +181,7 @@ public class SemaphoreDemo
                 }catch(InterruptedException e){
                     e.printStackTrace();
                 }finally{
-                	semaphore。release();
+                	semaphore.release();
             }
         },String.valueOf(i)).start();
     }

@@ -159,7 +159,7 @@ https://www.cnblogs.com/jasonZh/p/8762855.html
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 public interface IUserDao {
                 void addUser();
                 void delUser();
@@ -190,7 +190,7 @@ public interface IUserDao {
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //配置文件
 <bean name="userAction_name" class="cat.action.UserAction" >
 <property name="dao" ref="userDao_name" />  //引用的是下面的名称
@@ -206,7 +206,7 @@ action.execute();
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 public class UserAction {
        //public UserAction(){} 可以保保留一个无参的构造函数
                 
@@ -237,7 +237,7 @@ public class UserAction {
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //配置文件
 <bean name="userInfo_name" class="cat.beans.UserInfo" >
       <property name="id" value="1" />
@@ -266,7 +266,7 @@ public class UserAction {
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //测试
 ClassPathXmlApplicationContext ctx=new ClassPathXmlApplicationContext("beans.xml");
 UserAction action=(UserAction)ctx.getBean("userAction_name");
@@ -277,7 +277,7 @@ action.execute();
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //工厂,用来生成dao的实现类
 public class UserDaoFactory {
 public static IUserDao createUserDaoInstance(){
@@ -303,7 +303,7 @@ public class UserAction {
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //配置文件 
 <bean name="userAction_name" class="cat.action.UserAction" >
 <property name="dao"  ref="userDao_name" />
@@ -314,7 +314,7 @@ public class UserAction {
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //测试
 ClassPathXmlApplicationContext ctx=new ClassPathXmlApplicationContext("beans.xml");
 UserAction action=(UserAction)ctx.getBean("userAction_name");
@@ -325,7 +325,7 @@ action.execute();
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //工厂 =>
 public class UserDaoFactory {
 //这个方法不是静态的
@@ -339,7 +339,7 @@ public  IUserDao createUserDaoInstance(){
 
 [![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-```
+```java
 //配置文件 
 <bean name="userAction_name" class="cat.action.UserAction" >
 <property name="dao"  ref="userDao_name" />

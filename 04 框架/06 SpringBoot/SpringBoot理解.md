@@ -1,3 +1,22 @@
+# 面试题
+
+## 1.SpringBoot的优缺点（贝贝、海康、思必驰）
+
+优点：
+
+1     独立运行的Spring项目：可以以jar包形式独立运行，通过java -jar xx.jar即可运行
+2     内嵌Servlet容器：可以选择内嵌Tomcat、Jetty等
+3     提供starter简化maven配置：一个maven项目，使用了spring-boot-starter-web时，会自动加载Spring Boot的依赖包
+4     自动配置Spring：Spring Boot会根据在类路径中的jar包、类，为jar包中的类自动配置Bean
+5     准生产的应用监控：提供基于http、ssh、telnet对运行时的项目进行监控
+6     无代码生成和xml配置：主要通过条件注解来实现
+
+缺点：
+
+Spring Boot作为一个微框架，离微服务的实现还是有距离的。springboot 只是为了提高开发效率，是为了提升生产力的。
+
+**没有提供相应的服务发现和注册的配套功能**，自身的acturator所提供的监控功能，也需要与现有的监控对接。**没有配套的安全管控方案**，对于REST的落地，还需要自行结合实际进行URI的规范化工作。
+
 ## 沉淀再出发:spring boot的理解
 
 ### 一、前言
