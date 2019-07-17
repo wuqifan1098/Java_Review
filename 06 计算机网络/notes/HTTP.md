@@ -62,7 +62,15 @@ HTTP1.1 新增了五种请求方法：OPTIONS、PUT、PATCH、DELETE、TRACE 和
 
 https://juejin.im/post/5af557a3f265da0b9265a498
 
+HTTP 是明文传输，HTTPS 通过 SSL\TLS 进行了加密
 
+HTTP 的端口号是 80，HTTPS 是 443
+
+HTTPS 需要到 CA 申请证书，一般免费证书很少，需要交费
+
+HTTPS 的连接很简单，是无状态的；HTTPS 协议是由 SSL+HTTP 协议构建的可进行加密传输、身份认证的网络协议，比 HTTP 协议安全。
+
+作者：sunshine小小倩链接：https://juejin.im/post/59e4c02151882578d02f4aca
 
 # HTTP原理
 
