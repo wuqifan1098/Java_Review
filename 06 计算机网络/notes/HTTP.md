@@ -72,6 +72,8 @@ HTTPS 的连接很简单，是无状态的；HTTPS 协议是由 SSL+HTTP 协议�
 
 作者：sunshine小小倩链接：https://juejin.im/post/59e4c02151882578d02f4aca
 
+https://juejin.im/post/5caab0bff265da24cf311d5b
+
 # HTTP原理
 
 HTTP：当用户在浏览器的地址栏中输入所要访问Web的URL以后，HTTP的处理过程即会开始，HTTP中默认的端口是**80端口**，它的工作机制，首先是客户端向服务器的80端口建立一个TCP连接，然后再这个连接上进行请求和应答以及数据报文的发送。具体过程成如下：
