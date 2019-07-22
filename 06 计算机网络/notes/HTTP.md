@@ -62,7 +62,7 @@ HTTP1.1 新增了五种请求方法：OPTIONS、PUT、PATCH、DELETE、TRACE 和
 
 https://juejin.im/post/5af557a3f265da0b9265a498
 
-HTTP 是明文传输，HTTPS 通过 SSL\TLS 进行了加密
+HTTP 是**明文传输**，HTTPS **通过 SSL\TLS 进行了加密**
 
 HTTP 的端口号是 80，HTTPS 是 443
 
@@ -73,6 +73,82 @@ HTTPS 的连接很简单，是无状态的；HTTPS 协议是由 SSL+HTTP 协议�
 作者：sunshine小小倩链接：https://juejin.im/post/59e4c02151882578d02f4aca
 
 https://juejin.im/post/5caab0bff265da24cf311d5b
+
+## 6. HTTP报文结构（作业帮）
+
+请求报文：一个HTTP请求报文由**请求行（request line）、请求头部（header）、空行和请求数据**4个部分组成。
+
+请求行由**<Method>、<URL>、<Version>** 三个字段组成，注意每个字段之间都有一个空格。
+
+请求方法比较多：GET、POST、HEAD、PUT、DELETE、OPTIONS、TRACE、CONNECT
+
+大致结构：
+
+```http
+＜request-line＞ //请求行
+
+＜headers＞ //首部行
+
+＜blank line＞ //空行
+
+＜request-body＞ //请求体
+```
+
+一个简单的例子：
+
+```
+POST /user HTTP/1.1      //请求行
+Host: www.user.com
+Content-Type: application/x-www-form-urlencoded
+Connection: Keep-Alive
+User-agent: Mozilla/5.0.      //以上是首部行
+（此处必须有一空行）  //空行分割header和请求内容 
+name=world   请求体
+```
+
+响应报文
+
+也是由四个部分组成：
+
+```http
+＜status-line＞   //状态行
+
+＜headers＞   //消息报头
+
+＜blank line＞   //空行
+
+＜response-body＞    //响应体
+```
+
+状态行也由三部分组成：**服务器HTTP协议版本，响应状态码，状态码**的文本描述
+
+比如：HTTP/1.1 200 OK
+
+```Http
+    HTTP/1.1 304 Not Modified
+    Date：Sat, 15 Oct 2011 15:39:29
+    (空行)                                      
+    (空响应体)
+```
+
+## 7. 请求方法有哪些（作业帮）
+
+HTTP1.0 定义了三种请求方法： GET, POST 和 HEAD方法。
+
+HTTP1.1 新增了六种请求方法：OPTIONS、PUT、PATCH、DELETE、TRACE 和 CONNECT 方法。
+
+| 1    | GET     | 请求指定的页面信息，并返回实体主体。                         |
+| ---- | ------- | ------------------------------------------------------------ |
+| 2    | HEAD    | 类似于 GET 请求，只不过返回的响应中没有具体的内容，用于获取报头 |
+| 3    | POST    | 向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST 请求可能会导致新的资源的建立和/或已有资源的修改。 |
+| 4    | PUT     | 从客户端向服务器传送的数据取代指定的文档的内容。             |
+| 5    | DELETE  | 请求服务器删除指定的页面。                                   |
+| 6    | CONNECT | HTTP/1.1 协议中预留给能够将连接改为管道方式的代理服务器。    |
+| 7    | OPTIONS | 允许客户端查看服务器的性能。                                 |
+| 8    | TRACE   | 回显服务器收到的请求，主要用于测试或诊断。                   |
+| 9    | PATCH   | 是对 PUT 方法的补充，用来对已知资源进行局部更新 。           |
+
+https://www.runoob.com/http/http-methods.html
 
 # HTTP原理
 
