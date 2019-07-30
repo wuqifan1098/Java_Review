@@ -7,7 +7,7 @@
 3. 如果Bean实现了BeanNameAware接口，工厂调用Bean的setBeanName()方法传递Bean的ID。（和下面的一条均属于检查Aware接口）
 4. 如果Bean实现了BeanFactoryAware接口，工厂调用setBeanFactory()方法传入工厂自身
 5. 将Bean实例传递给Bean的前置处理器的postProcessBeforeInitialization(Object bean, String beanname)方法
-6. 调用Bean的初始化方法(自身的方法init-method)
+6. 调用Bean的**初始化方法**(自身的方法init-method)
 7. 将Bean实例传递给Bean的后置处理器的postProcessAfterInitialization(Object bean, String beanname)方法
 8. Bean可以使用了
 9. 当容器关闭时，调用Bean的销毁方法
