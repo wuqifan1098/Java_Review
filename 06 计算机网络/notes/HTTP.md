@@ -223,7 +223,7 @@ Web服务器解析请求，定位请求资源。服务器将资源复本写到TC
 
  HTTP请求是客户端往服务端发送请求动作，告知服务器自己的要求。
 
- HTTP请求由**状态行、请求头、请求正文**三部分组成：
+ HTTP请求由**状态行、请求头、空格、请求正文**四部分组成：
 
 状态行：包括请求方式Method、资源路径URL、协议版本Version；
 
@@ -232,6 +232,8 @@ Web服务器解析请求，定位请求资源。服务器将资源复本写到TC
 请求正文：就是HTTP请求的数据。
 
 请求方式Method一般有**GET、POST、PUT、DELETE，含义分别是获取、修改、上传、删除**
+
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190731223623.png)
 
 # HTTP响应
 
@@ -245,14 +247,110 @@ HTTP响应由三部分组成：状态行、响应头、响应正文；
 
 响应正文：就是响应的具体数据。
 
-|-----|---------------------|
-| 1xx | 表示HTTP请求已经接受，继续处理请求 |
-| 2xx | 表示HTTP请求已经处理完成      |
-| 3xx | 表示把请求访问的URL重定向到其他目录 |
-| 4xx | 表示客户端出现错误           |
-| 5xx | 表示服务端出现错误           |
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190731223737.png)
 
-## 常见状态码
+
+
+## 状态码
+
+| **状态码** | 类别                             | 原因短语                   |
+| ---------- | -------------------------------- | -------------------------- |
+| 1XX        | Informational（信息性状态码）    | 接收的请求正在处理         |
+| 2XX        | Success（成功状态码）            | 请求正常处理完毕           |
+| 3XX        | Redirection（重定向状态码）      | 需要进行附加操作以完成请求 |
+| 4XX        | Client Error（客户端错误状态码） | 服务器无法处理请求         |
+| 5XX        | Server Error（服务器错误状态码） | 服务器处理请求出错         |
+
+### 1XX 信息
+
+100 Continue ：表明到目前为止都很正常，客户端可以继续发送请求或者忽略这个响应。
+
+101 Switching Protocols 协议升级：请求者要求服务器切换协议，服务器确认并准备切换
+
+主要用于websocket：表示服务端接受 WebSocket 协议的客户端连接
+也可以用于http2的升级。
+2XX 成功
+
+### 200 OK
+
+204 No Content ：请求已经成功处理，但是返回的响应报文不包含实体的主体部分。一般在只需要从客户端往服务器发送信息，而不需要返回数据时使用。
+
+206 Partial Content ：表示客户端进行了范围请求。响应报文包含由 Content-Range 指定范围的实体内容。
+
+### 3XX 重定向
+
+301 Moved Permanently ：永久性重定向
+
+302 Found ：临时性重定向
+
+303 See Other ：和 302 有着相同的功能，但是 303 明确要求客户端应该采用 GET 方法获取资源。
+
+注：虽然 HTTP 协议规定 301、302 状态下重定向时不允许把 POST 方法改成 GET 方法，但是大多数浏览器都会在 301、302 和 303 状态下的重定向把 POST 方法改成 GET 方法。
+304 Not Modified ：如果请求报文首部包含一些条件，例如：If-Match，If-Modified-Since，If-None-Match，If-Range，If-Unmodified-Since，如果不满足条件，则服务器会返回 304 状态码。
+
+浏览器缓存分为强制缓存和协商缓存，优先读取强制缓存。
+
+强制缓存分为expires和cache-control：
+
+expires是一个特定的时间，是比较旧的标准。
+
+cache-control通常是一个具体的时间长度，比较新，优先级也比较高。
+
+协商缓存包括etag和last-modified：
+
+last-modified的设置标准是资源的上次修改时间
+
+etag是为了应对资源修改时间可能很频繁的情况出现的，是基于资源的内容计算出来的值，因此优先级也较高。
+
+如果 Last-Modified 和 ETag 同时被使用，则要求它们的验证都必须通过才会返回304，若其中某个验证没通过，则服务器会按常规返回资源实体及200状态码。
+
+协商缓存与强制缓存的区别在于强制缓存不需要访问服务器，返回结果是200，协商缓存需要访问服务器，命中协商缓存的话，返回结果是304。
+
+步骤：客户端发送附带条件的请求时（if-matched,if-modified-since,if-none-match,if-range,if-unmodified-since任一个）服务器端允许请求访问资源，但因发生请求未满足条件的情况后，直接返回304Modified（服务器端资源未改变，可直接使用客户端未过期的缓存）。
+
+补充网页：expires/cache-control/last-modified/etag详解以及解释为何应chrome该显示304却显示200：
+http://www.cnblogs.com/vajoy/p/5341664.html
+
+307 Temporary Redirect ：临时重定向，与 302 的含义类似，但是 307 要求浏览器不允许把重定向请求的 POST 方法改成 GET 方法。
+
+关于303和307：https://blog.csdn.net/liuxingen/article/details/51511034
+
+303、307其实就是把原来301、302不”合法”的处理动作给”合法化”，因为发现大家都不太遵守，所以干脆就增加一条规定。
+
+额外功能：也用于hsts跳转。hsts全称HTTP严格传输安全（HTTP Strict Transport Security，縮寫：HSTS）
+
+功能是要求浏览器下次访问该站点时使用https来访问，而不再需要先是http再转https。这样可以避免ssl剥离攻击：即攻击者在用户使用http访问的过程中进行攻击，对服务器冒充自己是用户，在攻击者和服务器中使用https访问，在用户和服务器中使用http访问。具体使用方法是在服务器响应头中添加Strict-Transport-Security，可以设置 max-age。
+
+### 4XX 客户端错误
+
+400 Bad Request ：请求报文中存在语法错误。提交json时，如果json格式有问题，接收端接收json，也会出现400 bad request。比如常见的json串，数组不应该有",但是有"了。
+
+401 Unauthorized ：该状态码表示发送的请求需要有认证信息（BASIC 认证、DIGEST 认证）。如果之前已进行过一次请求，则表示用户认证失败。
+
+403 Forbidden ：请求被拒绝，服务器端没有必要给出拒绝的详细理由。
+
+404 Not Found
+
+405 method not allowed
+问题原因：请求的方式（get、post、delete）方法与后台规定的方式不符合。比如： 后台方法规定的请求方式只接受get，如果用post请求，就会出现 405 method not allowed的提示
+
+408 请求超时
+
+### 5XX 服务器错误
+
+500： Internal Server Error ：服务器正在执行请求时发生错误。
+
+502：Bad Gateway：进程响应的内容是nginx无法理解的响应
+
+503 Service Unavilable ：服务器暂时处于超负载或正在进行停机维护，现在无法处理请求。（瞬时请求量过大）
+
+504：Gateway Time-out：进程阻塞超过nginx的时间阈值返回504
+
+505：不支持该http版本
+
+作者：Rude3knife 
+原文：https://blog.csdn.net/qqxx6661/article/details/87298230 
+
 
 		200---OK/请求已经正常处理完毕
 	
