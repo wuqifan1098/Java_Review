@@ -1,3 +1,26 @@
+# 面试题
+
+## 1. 给出一个链表和一个数k，链表前k个节点进行翻转（字节跳动）
+
+```java
+public ListNode reverseKGroup(ListNode head, int k){
+    
+}
+
+```
+
+## 2. 两个链表相加求和 （字节跳动）
+
+```java
+public class addList(ListNode l1, ListNode l2){
+	ListNode dummy = new ListNode(0);//当前节点
+	ListNode p = l1, q = l2, cur = dummy;//当前节点为
+
+}
+```
+
+
+
 # [2. 两数相加](https://leetcode-cn.com/problems/add-two-numbers/)
 
 给出两个 **非空** 的链表用来表示两个非负的整数。其中，它们各自的位数是按照 **逆序** 的方式存储的，并且它们的每个节点只能存储 **一位** 数字。
@@ -20,10 +43,10 @@
 
 **伪代码：**
 
-- 将当前结点初始化为返回列表的哑结点。
+- 将**当前结点初始化为返回列表的哑结点**。
 - 将进位 carry初始化为 00。
 - 将 p 和 q 分别初始化为列表 l1 和 l2 的头部。
-- 遍历列表 l1 和 l2直至到达它们的尾端。
+- **遍历列表 l1 和 l2**直至到达它们的尾端。
   - 将 x 设为结点 p 的值。如果 p 已经到达 l1 的末尾，则将其值设置为 0。
   - 将 y 设为结点 q 的值。如果 q 已经到达 l2 的末尾，则将其值设置为 0。
   - 设定 sum = x + y + carry。

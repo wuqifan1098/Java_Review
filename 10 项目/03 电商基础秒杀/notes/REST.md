@@ -11,12 +11,6 @@ REST是*Representational State Transfer*(在表现层上的状态转化)的缩�
 
 RESTful API有助于客户端和服务端的功能分离，服务器完全扮演着一个“资源服务商”的角色。各种不同的客户端都可以通过同一套API与这个“资源服务商”交流，从而与资源进行互动。
 
-
-
-
-
-![img](https:////upload-images.jianshu.io/upload_images/4888929-b3c72a5abb3ce4db.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/550/format/webp)
-
 RESTful API
 
 ### 指定一个资源
