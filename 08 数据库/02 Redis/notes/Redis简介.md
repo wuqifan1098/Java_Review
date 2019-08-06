@@ -1,10 +1,10 @@
 # 面试题
 
-## Redis 的哪种数据类型用到了跳表结构？
+## 1. Redis 的哪种数据类型用到了跳表结构？
 
 跳跃表是有序集合的底层实现之一
 
-## 为什么要用Redis
+## 2. 为什么要用Redis
 
 **高性能：**
 
@@ -14,7 +14,7 @@
 
 直接操作缓存能够承受的请求是远远大于直接访问数据库的，所以我们**可以考虑把数据库中的部分数据转移到缓存中去，这样用户的一部分请求会直接到缓存这里而不用经过数据库**。
 
-## Redis为什么设计成单线程
+## 3. Redis为什么设计成单线程
 
 redis 核心就是 如果我的数据全都在内存里，我单线程的去操作就是效率最高的，为什么呢，因为多线程的本质就是 CPU 模拟出来多个线程的情况，这种模拟出来的情况就有一个代价，就是**上下文的切换**，对于一个内存的系统来说，它没有上下文的切换就是效率最高的。redis **用 单个CPU 绑定一块内存的数据，然后针对这块内存的数据进行多次读写的时候，都是在一个CPU上完成的**，所以它是单线程处理这个事。
 
@@ -25,11 +25,18 @@ redis 核心就是 如果我的数据全都在内存里，我单线程的去操�
 1. redis是单线程的，**省去了很多上下文切换线程的时间**，不用考虑锁
 1. redis使**用多路复用技术**，可以处理并发的连接；
 
-重点解释下多路复用：
-多路-指的是多个socket连接，复用-指的是复用一个线程。
-目前，多路复用主要有三种技术：**select，poll，epoll。**
-它们出现的顺序是的，越排后的技术改正了之前技术的缺点。epoll是最新的也是目前最好的多路复用技术。
-举个例子：一个酒吧服务员，前面有很多醉汉，epoll这种方式相当于一个醉汉吼了一声要酒，服务员听见之后就去给他倒酒，而在这些醉汉没有要求的时候可以玩玩手机等。但是select和poll技术是这样的场景：服务员轮流着问各个醉汉要不要倒酒，没有空闲的时间。io多路复用的意思就是做个醉汉公用一个服务员。
+## 4. redis 内存淘汰机制(MySQL里有2000w数据，Redis中只存20w的数据，如何保证Redis中的数据都是热点数据?)
+
+redis 配置文件 redis.conf 中有相关注释，我这里就不贴了，大家可以自行查阅或者通过这个网址查看： http://download.redis.io/redis-stable/redis.conf
+
+redis 提供 6种数据淘汰策略：
+
+1. volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+2. volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+3. volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
+4. allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key（这个是最常用的）
+5. allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
+6. no-eviction：禁止驱逐数据，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧！
 
 # 常见数据类型及应用场景
 
@@ -83,16 +90,158 @@ sinterstore key1 key2 key3     将交集存在key1内
 
 举例： 在直播系统中，**实时排行信息包含直播间在线用户列表**，各种礼物排行榜，弹幕消息（可以理解为按消息维度的消息排行榜）等信息，适合使用 Redis 中的 Sorted Set 结构进行存储。
 
-# redis 内存淘汰机制(MySQL里有2000w数据，Redis中只存20w的数据，如何保证Redis中的数据都是热点数据?)
+# 数据结构
 
-redis 配置文件 redis.conf 中有相关注释，我这里就不贴了，大家可以自行查阅或者通过这个网址查看： http://download.redis.io/redis-stable/redis.conf
+## [字典](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=字典)
 
-redis 提供 6种数据淘汰策略：
+dictht 是一个散列表结构，使用拉链法解决哈希冲突。
 
-1. volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
-1. volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
-1. volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
-1. allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的key（这个是最常用的）
-1. allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
-1. no-eviction：禁止驱逐数据，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧！
+```c
+/* This is our hash table structure. Every dictionary has two of this as we
+ * implement incremental rehashing, for the old to the new table. */
+typedef struct dictht {
+    dictEntry **table;
+    unsigned long size;
+    unsigned long sizemask;
+    unsigned long used;
+} dictht;
+typedef struct dictEntry {
+    void *key;
+    union {
+        void *val;
+        uint64_t u64;
+        int64_t s64;
+        double d;
+    } v;
+    struct dictEntry *next;
+} dictEntry;
+```
+
+Redis 的字典 dict 中包含两个哈希表 dictht，这是为了方便进行 rehash 操作。在扩容时，将其中一个 dictht 上的键值对 rehash 到另一个 dictht 上面，完成之后释放空间并交换两个 dictht 的角色。
+
+```c
+typedef struct dict {
+    dictType *type;
+    void *privdata;
+    dictht ht[2];
+    long rehashidx; /* rehashing not in progress if rehashidx == -1 */
+    unsigned long iterators; /* number of iterators currently running */
+} dict;
+```
+
+rehash 操作不是一次性完成，而是采用渐进方式，这是为了避免一次性执行过多的 rehash 操作给服务器带来过大的负担。
+
+渐进式 rehash 通过记录 dict 的 rehashidx 完成，它从 0 开始，然后每执行一次 rehash 都会递增。例如在一次 rehash 中，要把 dict[0] rehash 到 dict[1]，这一次会把 dict[0] 上 table[rehashidx] 的键值对 rehash 到 dict[1] 上，dict[0] 的 table[rehashidx] 指向 null，并令 rehashidx++。
+
+在 rehash 期间，每次对字典执行添加、删除、查找或者更新操作时，都会执行一次渐进式 rehash。
+
+采用渐进式 rehash 会导致字典中的数据分散在两个 dictht 上，因此对字典的查找操作也需要到对应的 dictht 去执行。
+
+```c
+/* Performs N steps of incremental rehashing. Returns 1 if there are still
+ * keys to move from the old to the new hash table, otherwise 0 is returned.
+ *
+ * Note that a rehashing step consists in moving a bucket (that may have more
+ * than one key as we use chaining) from the old to the new hash table, however
+ * since part of the hash table may be composed of empty spaces, it is not
+ * guaranteed that this function will rehash even a single bucket, since it
+ * will visit at max N*10 empty buckets in total, otherwise the amount of
+ * work it does would be unbound and the function may block for a long time. */
+int dictRehash(dict *d, int n) {
+    int empty_visits = n * 10; /* Max number of empty buckets to visit. */
+    if (!dictIsRehashing(d)) return 0;
+
+    while (n-- && d->ht[0].used != 0) {
+        dictEntry *de, *nextde;
+
+        /* Note that rehashidx can't overflow as we are sure there are more
+         * elements because ht[0].used != 0 */
+        assert(d->ht[0].size > (unsigned long) d->rehashidx);
+        while (d->ht[0].table[d->rehashidx] == NULL) {
+            d->rehashidx++;
+            if (--empty_visits == 0) return 1;
+        }
+        de = d->ht[0].table[d->rehashidx];
+        /* Move all the keys in this bucket from the old to the new hash HT */
+        while (de) {
+            uint64_t h;
+
+            nextde = de->next;
+            /* Get the index in the new hash table */
+            h = dictHashKey(d, de->key) & d->ht[1].sizemask;
+            de->next = d->ht[1].table[h];
+            d->ht[1].table[h] = de;
+            d->ht[0].used--;
+            d->ht[1].used++;
+            de = nextde;
+        }
+        d->ht[0].table[d->rehashidx] = NULL;
+        d->rehashidx++;
+    }
+
+    /* Check if we already rehashed the whole table... */
+    if (d->ht[0].used == 0) {
+        zfree(d->ht[0].table);
+        d->ht[0] = d->ht[1];
+        _dictReset(&d->ht[1]);
+        d->rehashidx = -1;
+        return 0;
+    }
+
+    /* More to rehash... */
+    return 1;
+}Copy to clipboardErrorCopied
+```
+
+## [跳跃表](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=跳跃表)
+
+是有序集合的底层实现之一。
+
+跳跃表是基于多指针有序链表实现的，可以看成多个有序链表。
+
+![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/beba612e-dc5b-4fc2-869d-0b23408ac90a.png)
+
+
+
+在查找时，从上层指针开始查找，找到对应的区间之后再到下一层去查找。下图演示了查找 22 的过程。
+
+![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/0ea37ee2-c224-4c79-b895-e131c6805c40.png)
+
+
+
+与红黑树等平衡树相比，跳跃表具有以下优点：
+
+- 插入速度非常快速，因为不需要进行旋转等操作来维护平衡性；
+- 更容易实现；
+- 支持无锁操作。
+
+# 事务
+
+一个事务包含了多个命令，服务器在执行事务期间，不会改去执行其它客户端的命令请求。
+
+事务中的多个命令被一次性发送给服务器，而不是一条一条发送，这种方式被称为流水线，它可以减少客户端与服务器之间的网络通信次数从而提升性能。
+
+Redis 最简单的事务实现方式是**使用 MULTI 和 EXEC 命令将事务操作包围起来。**
+
+# 复制
+
+通过使用 **slaveof host port** 命令来让一个服务器成为另一个服务器的从服务器。
+
+一个从服务器只能有一个主服务器，并且不支持主主复制。
+
+## [连接过程](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=连接过程)
+
+1. 主服务器**创建快照文件，发送给从服务器，并在发送期间使用缓冲区记录执行的写命令**。快照文件发送完毕之后，开始向从服务器发送存储在缓冲区中的写命令；
+2. 从服务器丢弃所有旧数据，载入主服务器发来的快照文件，之后从服务器开始接受主服务器发来的写命令；
+3. 主服务器每执行一次写命令，就向从服务器发送相同的写命令。
+
+## [主从链](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=主从链)
+
+随着负载不断上升，主服务器可能无法很快地更新所有从服务器，或者重新连接和重新同步从服务器将导致系统超载。为了解决这个问题，可以创建一个中间层来分担主服务器的复制工作。中间层的服务器是最上层服务器的从服务器，又是最下层服务器的主服务器。
+
+![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/395a9e83-b1a1-4a1d-b170-d081e7bb5bab.png)
+
+# [Sentinel](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=十二、sentinel)
+
+Sentinel（哨兵）可以**监听集群中的服务器**，并在主服务器进入下线状态时，自动从从服务器中选举出新的主服务器。
 

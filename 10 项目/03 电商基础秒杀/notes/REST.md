@@ -111,25 +111,17 @@ GET、HEAD、PUT、DELETE方法是**幂等方法**(对于同一个内容的请�
 
 我一开始以为无状态与用户登陆是冲突的，后来在[StackOverflow](https://link.jianshu.com?t=https%3A%2F%2Fstackoverflow.com%2Fquestions%2F6068113%2Fdo-sessions-really-violate-restfulness)上找到了一个令我满意的解答。以下两幅图摘录自这个答案。
  无状态的认证机制：
- 
-
 
 
 ![img](https:////upload-images.jianshu.io/upload_images/4888929-fc26b6ac220fa85d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/792/format/webp)
 
 无状态的认证机制
 
-
-
 > What you need is storing username and password on the client and send it with every request. You don't need more to do this than HTTP basic auth and an encrypted connection.
 >  只需要将用户名和密码存储在客户端，然后客户端每次发送请求都附带上用户名和密码。要做到这点你只需要[HTTP基本认证](https://link.jianshu.com?t=https%3A%2F%2Fzh.wikipedia.org%2Fwiki%2FHTTP%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%81)和一个加密的连接(HTTPS)。
 >  如果每次认证，都要去数据库查询用户的信息来核对，那么响应会非常慢，而且服务器也会有很大的性能损失。为了加快认证的速度，最好在内存中使用认证缓存。这并不违背“无状态”的限制，因为缓存的作用仅仅起加速的作用，没有缓存照样工作。
 
 无状态的第三方鉴权机制：
-
-
-
-
 
 ![img](https:////upload-images.jianshu.io/upload_images/4888929-ed5a07c637d467b3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/981/format/webp)
 
@@ -145,8 +137,6 @@ GET、HEAD、PUT、DELETE方法是**幂等方法**(对于同一个内容的请�
  并且，无状态让系统的横向拓展能力强大。因为不需要在不同的服务器之间同步session状态，所以服务器之间的沟通开销很低。增加服务器的数量不会带来明显的性能损失（“1+1”更接近于“2”了）。
 
 ### HATEOAS
-
-
 
 ![img](https:////upload-images.jianshu.io/upload_images/4888929-981aaac89332aac9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/673/format/webp)
 
