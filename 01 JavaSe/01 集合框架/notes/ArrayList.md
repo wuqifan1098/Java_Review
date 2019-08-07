@@ -126,8 +126,6 @@ java.lang.Object
                ↳     java.util.ArrayList<E>
 ```
 
-
-
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Arrylist%E4%B8%8ECollection%E5%85%B3%E7%B3%BB.jpg)
 ## 2.序列化
 

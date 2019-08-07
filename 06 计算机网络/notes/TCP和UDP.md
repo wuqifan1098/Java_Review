@@ -150,6 +150,10 @@ https://blog.csdn.net/jike080401/article/details/52980864
 
 https://juejin.im/post/5c9f1dd651882567b4339bce
 
+## 13. TCP3次握手成功建立连接后，假如一方宕机，连接会保持吗（阿里）
+
+
+
 # UDP 和 TCP 的特点
 
 - 用户数据包协议 UDP（User Datagram Protocol）是**无连接的，尽最大可能交付，没有拥塞控制，面向报文**（对于应用程序传下来的报文不合并也不拆分，只是添加 UDP 首部），支持一对一、一对多、多对多、多对一通信。
