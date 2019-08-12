@@ -4,9 +4,9 @@
 
 
 
-## [LinkedHashMap](https://cyc2018.github.io/CS-Notes/#/notes/Java 容器?id=linkedhashmap)
+## LinkedHashMap
 
-### [存储结构](https://cyc2018.github.io/CS-Notes/#/notes/Java 容器?id=存储结构)
+### 存储结构
 
 继承自 HashMap，因此具有和 HashMap 一样的快速查找特性。
 
