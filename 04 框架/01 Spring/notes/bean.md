@@ -157,8 +157,6 @@ https://www.cnblogs.com/jasonZh/p/8762855.html
 
 **一、用 setter 方式**
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 public interface IUserDao {
                 void addUser();
@@ -188,8 +186,6 @@ public interface IUserDao {
                 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 //配置文件
 <bean name="userAction_name" class="cat.action.UserAction" >
@@ -203,8 +199,6 @@ action.execute();
 ```
 
 **二、构造函数**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 public class UserAction {
@@ -233,10 +227,6 @@ public class UserAction {
 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 //配置文件
 <bean name="userInfo_name" class="cat.beans.UserInfo" >
@@ -264,8 +254,6 @@ public class UserAction {
 <bean name="userDao_name" class="cat.dao.UserDaoImpl" />
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 //测试
 ClassPathXmlApplicationContext ctx=new ClassPathXmlApplicationContext("beans.xml");
@@ -274,8 +262,6 @@ action.execute();
 ```
 
 **三、静态工厂方式**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 //工厂,用来生成dao的实现类
@@ -299,10 +285,6 @@ public class UserAction {
 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 //配置文件 
 <bean name="userAction_name" class="cat.action.UserAction" >
@@ -311,8 +293,6 @@ public class UserAction {
               
 <bean name="userDao_name" class="cat.dao.UserDaoFactory" factory-method="createUserDaoInstance" />
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 //测试
@@ -323,8 +303,6 @@ action.execute();
 
 **四、实例工厂**
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 //工厂 =>
 public class UserDaoFactory {
@@ -334,10 +312,6 @@ public  IUserDao createUserDaoInstance(){
         }
 }
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 //配置文件 

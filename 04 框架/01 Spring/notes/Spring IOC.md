@@ -26,6 +26,31 @@ DI 就是**将spring管理的对象通过 AutoWrite 注解注入到我们需要�
 
 ## 3. BeanFactory和ApplicationContext的区别
 
+- BeanFactory和ApplicationContext是Spring的两大核心接口，而其中ApplicationContext是BeanFactory的子接口。它们都可以当做Spring的容器，Spring容器是生成Bean实例的工厂，并管理容器中的Bean。
+- Spring的核心是容器，而容器并不唯一，框架本身就提供了很多个容器的实现，大概分为两种类型：
+  一种是不常用的BeanFactory，这是**最简单的容器，只能提供基本的DI功能；**
+  一种就是继承了BeanFactory后派生而来的ApplicationContext(应用上下文)，它能提供更多企业级的服务，**例如解析配置文本信息等等，这也是ApplicationContext实例对象最常见的应用场景。**
+- BeanFactroy采用的是**延迟加载形式来注入Bean的**，即**只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化**。这样，我们就不能发现一些存在的Spring的配置问题。如果Bean的某一个属性没有注入，BeanFacotry加载后，**直至第一次使用调用getBean方法才会抛出异常。**实现 BeanFactory 最常用的 API 是 XMLBeanFactory 这里是如何通过 BeanFactory 获取一个 bean 的例子：
+
+```java
+package com.zoltanraffai;  
+import org.springframework.core.io.ClassPathResource;  
+import org.springframework.beans.factory.InitializingBean; 
+import org.springframework.beans.factory.xml.XmlBeanFactory; 
+public class HelloWorldApp{ 
+   public static void main(String[] args) { 
+      XmlBeanFactory factory = new XmlBeanFactory (new ClassPathResource("beans.xml")); 
+      HelloWorld obj = (HelloWorld) factory.getBean("helloWorld");    
+      obj.getMessage();    
+   }
+}
+
+作者：日拱一兵
+链接：https://juejin.im/post/5d195530f265da1bb80c4560
+```
+
+- BeanFactory和ApplicationContext都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：BeanFactory需要手动注册，而ApplicationContext则是自动注册。
+
 # 引言
 
 先看下最基本的启动 Spring 容器的例子：
@@ -65,8 +90,6 @@ BeanFactory，从名字上也很好理解，生产 bean 的工厂，它负责生
 初学者可别以为我之前说那么多和 BeanFactory 无关，前面说的 ApplicationContext 其实就是一个 BeanFactory。我们来看下和 BeanFactory 接口相关的主要的继承结构：
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190528210412.png)
-
-
 
 # 1.什么是IOC
 
@@ -138,6 +161,149 @@ ApplicationContext 可以称之为 “高级容器”。因为他比 BeanFactory
 
 1. **低级容器 加载配置文件（从 XML，数据库，Applet）**，并解析成 BeanDefinition 到低级容器中。
 2. 加载成功后，**高级容器启动高级功能**，例如接口回调，监听器，自动实例化单例，发布事件等等功能。
+
+# BeanFactory
+
+**BeanFactory接口：**
+  是Spring bean容器的根接口，提供获取bean，是否包含bean,是否单例与原型，获取bean类型，bean 别名的方法 。它最主要的方法就是getBean(String beanName)。
+  
+ **BeanFactory的三个子接口：**
+
+  * HierarchicalBeanFactory：提供父容器的访问功能
+
+  * ListableBeanFactory：提供了批量获取Bean的方法
+
+  * AutowireCapableBeanFactory：在BeanFactory基础上实现对已存在实例的管理
+
+**ConfigurableBeanFactory：**
+
+ 主要单例bean的注册，生成实例，以及统计单例bean
+
+**ConfigurableListableBeanFactory：**
+
+ 继承了上述的所有接口，增加了其他功能：比如类加载器,类型转化,属性编辑器,BeanPostProcessor,作用域,bean定义,处理bean依赖关系, bean如何销毁…
+
+ **实现类DefaultListableBeanFactory详细介绍：**
+
+ 实现了ConfigurableListableBeanFactory，实现上述BeanFactory所有功能。它还可以注册BeanDefinition
+  接口详细介绍请参考:[揭秘BeanFactory](https://blog.csdn.net/u011179993/article/details/51636742)
+
+# ApplicationContext
+
+![img](https:////upload-images.jianshu.io/upload_images/12234310-a14ad5a594b524fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp)
+
+​                                                                        ApplicationContext结构图
+
+![img](https:////upload-images.jianshu.io/upload_images/12234310-be1edded652cea7b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp)
+
+​                                                                       ApplicationContext类结构树
+
+|     ApplicationContext常用实现类      |                             作用                             |
+| :-----------------------------------: | :----------------------------------------------------------: |
+|  AnnotationConfigApplicationContext   | 从一个或多个基于java的配置类中加载上下文定义，适用于java注解的方式。 |
+|    ClassPathXmlApplicationContext     | 从类路径下的一个或多个xml配置文件中加载上下文定义，适用于xml配置的方式。 |
+|    FileSystemXmlApplicationContext    | 从文件系统下的一个或多个xml配置文件中加载上下文定义，也就是说系统盘符中加载xml配置文件。 |
+| AnnotationConfigWebApplicationContext |            专门为web应用准备的，适用于注解方式。             |
+|       XmlWebApplicationContext        | 从web应用下的一个或多个xml配置文件加载上下文定义，适用于xml配置方式。 |
+
+Spring具有非常大的灵活性，它提供了三种主要的装配机制：
+
+- 在XMl中进行显示配置
+- 在Java中进行显示配置
+- 隐式的bean发现机制和自动装配
+   *组件扫描（component scanning）：Spring会自动发现应用上下文中所创建的bean。
+   *自动装配（autowiring）：Spring自动满足bean之间的依赖。
+
+（使用的优先性: 3>2>1）尽可能地使用自动配置的机制，显示配置越少越好。当必须使用显示配置bean的时候（如：有些源码不是由你来维护的，而当你需要为这些代码配置bean的时候），推荐使用类型安全比XML更加强大的JavaConfig。最后只有当你想要使用便利的XML命名空间，并且在JavaConfig中没有同样的实现时，才使用XML。
+
+代码示例：
+
+通过**xml文件将配置**加载到IOC容器中
+
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+     <!--若没写id，则默认为com.test.Man#0,#0为一个计数形式-->
+    <bean id="man" class="com.test.Man"></bean>
+</beans>
+public class Test {
+    public static void main(String[] args) {
+        //加载项目中的spring配置文件到容器
+        //ApplicationContext context = new ClassPathXmlApplicationContext("resouces/applicationContext.xml");
+        //加载系统盘中的配置文件到容器
+        ApplicationContext context = new FileSystemXmlApplicationContext("E:/Spring/applicationContext.xml");
+        //从容器中获取对象实例
+        Man man = context.getBean(Man.class);
+        man.driveCar();
+    }
+}
+```
+
+通过**java注解的方式**将配置加载到IOC容器
+
+```java
+//同xml一样描述bean以及bean之间的依赖关系
+@Configuration
+public class ManConfig {
+    @Bean
+    public Man man() {
+        return new Man(car());
+    }
+    @Bean
+    public Car car() {
+        return new QQCar();
+    }
+}
+public class Test {
+    public static void main(String[] args) {
+        //从java注解的配置中加载配置到容器
+        ApplicationContext context = new AnnotationConfigApplicationContext(ManConfig.class);
+        //从容器中获取对象实例
+        Man man = context.getBean(Man.class);
+        man.driveCar();
+    }
+}
+```
+
+隐式的bean**发现机制和自动装配**
+
+```java
+/**
+ * 这是一个游戏光盘的实现
+ */
+//这个简单的注解表明该类回作为组件类，并告知Spring要为这个创建bean。
+@Component
+public class GameDisc implements Disc{
+    @Override
+    public void play() {
+        System.out.println("我是马里奥游戏光盘。");
+    }
+}
+```
+
+不过，组件扫描默认是不启用的。我们还需要显示配置一下Spring，从而命令它去寻找@Component注解的类，并为其创建bean。
+
+```java
+@Configuration
+@ComponentScan
+public class DiscConfig {
+}
+```
+
+我们在DiscConfig上加了一个@ComponentScan注解表示在Spring中开启了组件扫描，默认扫描与配置类相同的包，就可以扫描到这个GameDisc的Bean了。这就是Spring的自动装配机制
+
+**除了提供BeanFactory所支持的所有功能外ApplicationContext还有额外的功能**
+
+- 默认初始化所有的Singleton，也可以通过配置取消预初始化。
+- 继承MessageSource，因此支持国际化。
+- 资源访问，比如访问URL和文件。
+- 事件机制。
+- 同时加载多个配置文件。
+- 以声明式方式启动并创建Spring容器。
+
+https://www.jianshu.com/p/2854d8984df
 
 # 底层原理 (降低类之间的耦合度)
 
