@@ -483,8 +483,6 @@ private Node enq(final Node node) {
 
    既然明白基本的操作机理，我们就可以实现自己的锁机制了，比如mutex这种不可重入的互斥锁。
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
  1 class Mutex implements Lock, java.io.Serializable {
  2     // 自定义同步器
@@ -540,8 +538,6 @@ private Node enq(final Node node) {
 52 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​    同步类在实现时一般都将自定义同步器（sync）定义为内部类，供自己使用；而同步类自己（Mutex）则实现某个接口，对外服务。当然，接口的实现要直接依赖sync，它们在语义上也存在某种对应关系，而sync只用实现资源state的获取-释放方式tryAcquire-tryRelelase，至于线程的排队、等待、唤醒等，上层的AQS都已经实现好了，我们不用关心。
 　  除了Mutex，ReentrantLock/CountDownLatch/Semphore这些同步类的实现方式都差不多，不同的地方就在获取-释放资源的方式tryAcquire-tryRelelase。掌握了这点，AQS的核心便被攻破了。
 
@@ -552,8 +548,6 @@ private Node enq(final Node node) {
 #### ReentrantLock重入锁  
 
 ​    重入锁的基本原理是判断上次获取锁的线程是否为当前线程，如果是则可再次进入临界区，如果不是，则阻塞。重入锁的最主要逻辑就锁判断上次获取锁的线程是否为当前线程。由于ReentrantLock是基于AQS实现的，底层通过操作同步状态来获取锁，下面看一下非公平锁的实现逻辑：
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
  1 final boolean nonfairTryAcquire(int acquires) {
@@ -583,17 +577,13 @@ private Node enq(final Node node) {
 25 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 #### 非公平锁
 
-​    非公平锁是指当锁状态为可用时，不管在当前锁上是否有其他线程在等待，新近线程都有机会抢占锁。上述代码即为非公平锁和核心实现，可以看到只要同步状态为0，任何调用lock的线程都有可能获取到锁，而不是按照锁请求的FIFO原则来进行的。
+​    非公平锁是指当锁状态为可用时，不管在当前锁上是否有其他线程在等待，新近线程都有机会抢占锁。上述代码即为非公平锁和核心实现，可以看到**只要同步状态为0，任何调用lock的线程都有可能获取到锁，而不是按照锁请求的FIFO原则来进行的。**
 
 #### 公平锁
 
 ​    公平锁是指当多个线程尝试获取锁时，成功获取锁的顺序与请求获取锁的顺序相同，下面看一个ReentrantLock的实现：
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
  1 protected final boolean tryAcquire(int acquires) {
@@ -617,8 +607,6 @@ private Node enq(final Node node) {
 19             return false;
 20 }
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ​    从上面的代码中可以看出，公平锁与非公平锁的区别仅在于是否判断当前节点是否存在前驱节点!hasQueuedPredecessors() ，由AQS可知，如果当前线程获取锁失败就会被加入到AQS同步队列中，那么，如果同步队列中的节点存在前驱节点，也就表明存在线程比当前节点线程更早的获取锁，故只有等待前面的线程释放锁后才能获取锁。
 
