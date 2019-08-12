@@ -24,6 +24,8 @@ DI 就是**将spring管理的对象通过 AutoWrite 注解注入到我们需要�
 - setter
 - 构造器注入
 
+## 3. BeanFactory和ApplicationContext的区别
+
 # 引言
 
 先看下最基本的启动 Spring 容器的例子：
@@ -56,7 +58,7 @@ ClassPathXmlApplicationContext 兜兜转转了好久才到 ApplicationContext �
 
 **AnnotationConfigApplicationContext** 是基于注解来使用的，它不需要配置文件，采用 java 配置类和各种注解来配置，是比较简单的方式，也是大势所趋吧。
 
-## BeanFactory 简介
+BeanFactory 简介
 
 BeanFactory，从名字上也很好理解，生产 bean 的工厂，它负责生产和管理各个 bean 实例。
 
@@ -91,6 +93,51 @@ IoC(Inversion of Control)，意为控制反转，不是什么技术，而是一�
 - **为什么需要依赖：** 应用程序需要IoC容器来提供对象需要的外部资源；
 - **谁注入谁：** 很明显是IoC容器注入应用程序某个对象，应用程序依赖的对象；
 - **注入了什么：** 就是注入某个对象所需要的外部资源（包括对象、资源、常量数据）
+
+##  IoC 设计支持以下功能：
+
+1. 依赖注入
+2. 依赖检查
+3. 自动装配
+4. 支持集合
+5. 指定初始化方法和销毁方法
+6. 支持回调某些方法（但是需要实现 Spring 接口，略有侵入）
+
+其中，最重要的就是**依赖注入**，从 XML 的配置上说， 即 ref 标签。对应 Spring RuntimeBeanReference 对象。
+
+对于 IoC 来说，最重要的就是容器。容器管理着 Bean 的生命周期，控制着 Bean 的依赖注入。
+
+那么， Spring 如何设计容器的呢？
+
+Spring 作者 Rod Johnson 设计了两个接口用以表示容器。
+
+1. BeanFactory
+2. ApplicationContext
+
+BeanFactory 粗暴简单，可以理解为就是个 HashMap，Key 是 BeanName，Value 是 Bean 实例。**通常只提供注册（put），获取（get）这两个功能。我们可以称之为 “低级容器”**。
+
+ApplicationContext 可以称之为 “高级容器”。因为他比 BeanFactory 多了更多的功能。**他继承了多个接口。因此具备了更多的功能。**
+
+该接口定义了一个 refresh 方法，此方法是所有阅读 Spring 源码的人的最熟悉的方法，用于刷新整个容器，**即重新加载/刷新所有的 bean。**
+
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Spring%20%E9%AB%98%E7%BA%A7%20%E4%BD%8E%E7%BA%A7%E5%AE%B9%E5%99%A8%20UML.jpg)
+
+看下面的隶属 ApplicationContext 粉红色的 “高级容器”，依赖着 “低级容器”，这里说的是依赖，不是继承。**他依赖着 “低级容器” 的 getBean 功能**。而高级容器有更多的功能：**支持不同的信息源头，可以访问文件资源，支持应用事件（Observer 模式）。**
+
+通常用户看到的就是 “高级容器”。但 BeanFactory 也非常够用。
+
+左边灰色区域的是 “低级容器”， 只负载加载 Bean，获取 Bean。容器其他的高级功能是没有的。例如上图画的 refresh 刷新 Bean 工厂所有配置。生命周期事件回调等。
+
+下图是 ClassPathXmlApplicationContext 的构造过程，实际就是 Spring IoC 的初始化过程。
+
+1. 用户构造 ClassPathXmlApplicationContext（简称 CPAC）
+2. CPAC 首先访问了 “抽象高级容器” 的 final 的 refresh 方法，这个方法是模板方法。所以要回调子类（低级容器）的 refreshBeanFactory 方法，这个方法的作用是使用低级容器加载所有 BeanDefinition 和 Properties 到容器中。
+3. 低级容器加载成功后，高级容器开始处理一些回调，例如 Bean 后置处理器。回调 setBeanFactory 方法。或者注册监听器等，发布事件，实例化单例 Bean 等等功能。
+
+简单说就是：
+
+1. **低级容器 加载配置文件（从 XML，数据库，Applet）**，并解析成 BeanDefinition 到低级容器中。
+2. 加载成功后，**高级容器启动高级功能**，例如接口回调，监听器，自动实例化单例，发布事件等等功能。
 
 # 底层原理 (降低类之间的耦合度)
 
@@ -467,7 +514,20 @@ protected Object doCreateBean(final String beanName, final RootBeanDefinition mb
 
 理解了以上两个过程，我们就可以自己实现一个简单的Spring框架了。于是，我根据自己的理解实现了一个简单的IOC框架[Simple Spring](https://github.com/Yikun/simple-spring)，有兴趣可以看看。
 
+# 总结
+
+IoC 在 Spring 里，只需要低级容器就可以实现，2 个步骤：
+
+1. 加载配置文件，解析成 BeanDefinition 放在 Map 里。
+2. 调用 getBean 的时候，从 BeanDefinition 所属的 Map 里，拿出 Class 对象进行实例化，同时，如果有依赖关系，将递归调用 getBean 方法 —— 完成依赖注入。
+
+上面就是 Spring 低级容器（BeanFactory）的 IoC。
+
+至于高级容器 ApplicationContext，他包含了低级容器的功能，当他执行 refresh 模板方法的时候，将刷新整个容器的 Bean。同时其作为高级容器，包含了太多的功能。一句话，他不仅仅是 IoC。他支持不同信息源头，支持 BeanFactory 工具类，支持层级容器，支持访问文件资源，支持事件发布通知，支持接口回调等等。
+
 # 参考
 
 [1]: https://yikun.github.io/2015/05/29/Spring-IOC%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/	"Spring-IOC核心源码学习"
+
+必问的 Spring IOC，要看看了！！！ http://thinkinjava.cn 作者：莫那·鲁道
 
