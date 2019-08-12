@@ -12,9 +12,17 @@
 
 new的时候都会在堆上，只是栈上会存该对象的地址，不然这个对象的空间没法进行GC
 
-## 4. 
+## 4. JVM中对象的创建过程
 
+1. 执行new执行
+2. 检查这个指令参数是否能够在常量池中定位到一个类的符号引用，并且检查这个符号引用所代表的类是否已经被加载，解析和初始化。
+3. 如果该类没有被加载则先执行类的加载操作
+4. 如果该类已经被加载，则开始给该对象在jvm的堆中分配内存。分配规则后面介绍
+5. 虚拟机初始化操作，虚拟机对分配的空间初始化为零值。
+6. 执行init方法，初始化对象的属性，至此对象被创建完成。
+7. java虚拟机栈中的Reference执行我们刚刚创建的对象。
 
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E8%BF%87%E7%A8%8B.png)
 
 ## jvm的本质
 
@@ -93,8 +101,6 @@ new的时候都会在堆上，只是栈上会存该对象的地址，不然这�
 
    **让我们通过一个例子来看：**
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```
  1 public class ZyrCal { 
  2     public static void main(String [] args){
@@ -109,8 +115,6 @@ new的时候都会在堆上，只是栈上会存该对象的地址，不然这�
 11  }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111144733867-226822802.png)
 
 ####  native 方法的多线程实现方式：   
@@ -121,13 +125,9 @@ new的时候都会在堆上，只是栈上会存该对象的地址，不然这�
 
 ​    **直接内存并不是虚拟机运行的一部分，**也不是Java虚拟机规范中定义的内存区域，但是这部分内存也被频繁使用；NIO可以使用**Native函数库**直接分配堆外内存，堆中的DirectByteBuffer对象作为这块内存的引用进行操作。大小不受Java堆大小的限制，受本机(服务器)内存限制。OutOfMemoryError异常：系统内存不足时。
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```
 Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据放在方法区；以上区域是所有线程共享的。栈是线程私有的，存放该方法的局部变量表(基本类型、对象引用)、操作数栈、动态链接、方法出口等信息。一个Java程序对应一个JVM，一个方法（线程）对应一个Java栈。
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ####  2.4、Java代码的编译和执行过程
 
@@ -160,8 +160,6 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111133739698-1730088610.png)
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```
  1 1、Bootstrap ClassLoader
  2     JVM的根ClassLoader，由C++实现
@@ -175,9 +173,7 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 10     属于应用程序根据自身需要自定义的ClassLoader，如tomcat、jboss都会根据J2EE规范自行实现ClassLoader。
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
 1 双亲委派机制：JVM在加载类时默认采用的是双亲委派机制。通俗的讲，就是某个特定的类加载器在接到加载类的请求时，首先将加载任务委托给父类加载器，依次递归。如果父类加载器可以完成类加载任务，就成功返回；只有父类加载器无法完成此加载任务时，才自己去加载。
@@ -185,8 +181,6 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 3 
 4 破坏双亲委派机制：双亲委派机制并不是一种强制性的约束模型，而是Java设计者推荐给开发者的类加载器实现方式。线程上下文类加载器，这个类加载器可以通过java.lang.Thread类的setContextClassLoader()方法进行设置，如果创建线程时还未设置，它将会从父线程中继承一个，如果在应用程序的全局范围内都没有设置过的话，那么这个类加载器就是应用程序类加载器。像JDBC就是采用了这种方式。这种行为就是逆向使用了加载器，违背了双亲委派模型的一般性原则。
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ####  2.4.3、类执行机制
 
@@ -198,8 +192,6 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 
 ####  主要的执行技术：解释，即时编译，自适应优化、芯片级直接执行
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```
 1     解释属于第一代JVM，
 2     即时编译JIT属于第二代JVM，
@@ -207,7 +199,7 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 4     开始对所有的代码都采取解释执行的方式，并监视代码执行情况。      对那些经常调用的方法启动一个后台线程，将其编译为本地代码，并进行优化。      若方法不再频繁使用，则取消编译过的代码，仍对其进行解释执行。
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111150416810-1598506074.png)
 
@@ -243,8 +235,6 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 
 ####  导致Full GC的几种情况和调优策略：
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```
 1     旧生代空间不足
 2     调优时尽量让对象在新生代GC时被回收、让对象在新生代多存活一段时间和不要创建过大的对象及数组避免直接在旧生代创建对象
@@ -256,11 +246,7 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 8     垃圾回收不要手动触发，尽量依靠JVM自身的机制 
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ####  堆内存比例不良设置导致的后果：
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
 12）新生代设置过大
@@ -271,11 +257,7 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 -XX:MaxTenuringThreshold=n来控制新生代存活时间，尽量让对象在新生代被回收。
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
  **JVM提供两种较为简单的GC策略的设置方式：**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
 1 1）吞吐量优先
@@ -283,8 +265,6 @@ Java对象实例存放在堆中；常量存放在方法区的常量池；虚拟�
 3 2）暂停时间优先
 4    JVM以暂停时间为指标，自行选择相应的GC策略及控制新生代与旧生代的大小比例，尽量保证每次GC造成的应用停止时间都在指定的数值范围内完成。这个值可由-XX:MaxGCPauseRatio=n来设置。
 ```
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ####  **JVM常见配置：**
 
