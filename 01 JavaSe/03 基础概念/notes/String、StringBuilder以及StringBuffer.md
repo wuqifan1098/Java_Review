@@ -59,6 +59,10 @@ StringBuilder：
 
 （4）如果不是多线程环境，或者不考虑线程安全问题，StringBuilder 相比使用 StringBuffer 能获得 10%~15% 左右的性能提升。
 
+## 4. String是怎么做到不变的
+
+
+
 ### StringBuilder()源码
 
 ```java

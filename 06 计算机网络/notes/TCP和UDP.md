@@ -44,9 +44,7 @@ TIME_WAIT是主动关闭连接的一方保持的状态，对于服务器来说�
 
 出现大量close_wait的现象，主要原因是某种情况下对方关闭了socket链接，但是**我方忙与读或者写，没有关闭连接**。
 
-  作者：Evila
 链接：https://www.nowcoder.com/discuss/207756?type=2
-来源：牛客网
 
 服务器没有收到ack，重发FIN。**如果此时，客户端处于TIME_WAIT状态，那么会响应ack。**如果此时，**客户端已经超过了TIME_WAIT，进入close状态。那么也就意味着客户端的socket 端口关闭了，**这时服务端的FIN到达一个已经关闭的端口，会触发RST复位，服务端直接关闭。  
 
@@ -128,7 +126,7 @@ https://blog.51cto.com/11859650/1917938
 
  ①第一次：主机1（**可以使客户端，也可以是服务器端**），设置**Sequence Number**和**Acknowledgment Number**，向主机2发送一个**FIN**报文段；此时，主机1进入**FIN_WAIT_1**状态；这表示主机1没有数据要发送给主机2了； 
 
-  ②第二次：主机2收到了主机1发送的FIN报文段，向主机1回一个ACK报文段，**Acknowledgment Number**为**Sequence Numbe****r加1**；主机1进入**FIN_WAIT_2**状态；主机2告诉主机1，我“同意”你的关闭请求；
+  ②第二次：主机2收到了主机1发送的FIN报文段，向主机1回一个ACK报文段，**Acknowledgment Number**为**Sequence Numbe**r加1**；主机1进入**FIN_WAIT_2**状态；主机2告诉主机1，我“同意”你的关闭请求；
 
   ③第三次：主机2向主机1发送**FIN**报文段，请求关闭连接，同时主机2进入**LAST_ACK**状态；
 

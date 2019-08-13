@@ -2,11 +2,13 @@
 
 ## 1. 介绍一下ThreadLocal（新浪）
 
+ThreadLocal**提供了线程的局部变量**，每个线程都可以通过set()和get()来对这个局部变量进行操作，而不会影响其它线程所对应的副本，避免了线程竞争，**实现了线程的数据隔离**。
+
 ## 2. 设计一个ThreadLocal（新浪）
 
 # 一、对ThreadLocal的理解
 
-ThreadLocal，很多地方叫做**线程本地变量**，也有些地方叫做线程本地存储，其实意思差不多。用ThreadLocal维护变量时，ThreadLocal为**每个使用该变量的线程提供独立的变量副本**，所以**每一个线程都可以独立地改变自己的副本**，而不会影响其它线程所对应的副本。避免线程竞争。
+ThreadLocal**提供了线程的局部变量**，每个线程都可以通过set()和get()来对这个局部变量进行操作，而不会影响其它线程所对应的副本，避免了线程竞争，**实现了线程的数据隔离**。
 
 # 二、深入解析ThreadLocal类
 
@@ -201,6 +203,16 @@ return setInitialValue();
    2、不巧，位置i已经有Entry对象了，**如果这个Entry对象的key正好是即将设置的key，那么重新设置Entry中的value**；
    3、很不巧，位置i的Entry对象，和即将设置的key没关系，那么只能找下一个空位置
    作者：占小狼链接：https://www.jianshu.com/p/377bb840802f来源：简书
+   
+### 总结
+
+1. 每个Thread维护着**一个ThreadLocalMap的引用**
+2. ThreadLocalMap是ThreadLocal的内部类，**用Entry来进行存储**
+3. 调用ThreadLocal的set()方法时，实际上就是往ThreadLocalMap设置值，key是ThreadLocal对象，值是传递进来的对象
+4. 调用ThreadLocal的get()方法时，实际上就是往ThreadLocalMap获取值，**key是ThreadLocal对象**
+5. **ThreadLocal本身并不存储值**，它只是**作为一个key来让线程从ThreadLocalMap获取value**。
+
+ https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&mid=2247484118&idx=1&sn=da3e4c4cfd0642687c5d7bcef543fe5b&chksm=ebd743d7dca0cac19a82c7b29b5b22c4b902e9e53bd785d066b625b4272af2a6598a0cc0f38e&scene=21##wechat_redirect
 
 # 三、作用
 
@@ -222,13 +234,17 @@ ThreadLocalMap中的**节点Entry继承了WeakReference类**，定义了一个�
 
 如果这里使用普通的key-value形式来定义存储结构，实质上就会造成**节点的生命周期与线程强绑定，只要线程没有销毁，那么节点在GC分析中一直处于可达状态，没办法被回收，而程序本身也无法判断是否可以清理节点。**
 
-ThreadLocal对象是一个继承自WeakReference的弱引用，当把ThreadLocal的实例置为空以后，没有任何强引用指向ThreadLocal的实例，所以ThreadLocal的将会被GC回收。
+ThreadLocal对象是**一个继承自WeakReference的弱引用**，当把ThreadLocal的实例置为空以后，没有任何强引用指向ThreadLocal的实例，所以ThreadLocal的将会被GC回收。
 
 生命周期只存活到下次GC前，可降低内存泄漏的风险。
 
 ### ThreadLocal 内存泄露问题
 
 `ThreadLocalMap` 中使用的 key 为 `ThreadLocal` 的弱引用,而 value 是强引用。所以，如果 `ThreadLocal` 没有被外部强引用的情况下，在垃圾回收的时候会 key 会被清理掉，而 value 不会被清理掉。**这样一来，`ThreadLocalMap` 中就会出现key为null的Entry。假如我们不做任何措施的话，value 永远无法被GC 回收，这个时候就可能会产生内存泄露。**ThreadLocalMap实现中已经考虑了这种情况，在调用 `set()`、`get()`、`remove()`方法的时候，会清理掉 key 为 null 的记录。**使用完 `ThreadLocal`方法后 最好手动调用`remove()`方法**
+
+ThreadLocal内存泄漏的根源是：**由于ThreadLocalMap的生命周期跟Thread一样长，如果没有手动删除对应key就会导致内存泄漏，而不是因为弱引用**。
+
+想要避免内存泄露就要**手动remove()掉**！
 
 ```java
       static class Entry extends WeakReference<ThreadLocal<?>> {

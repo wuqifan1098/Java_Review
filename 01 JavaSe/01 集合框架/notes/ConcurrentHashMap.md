@@ -4,6 +4,8 @@
 
 ConcurrentHashMap是一种线程安全且高效的HashMap。在JDK1.7中底层采用了**分段的数组+链表**的实现，把内部分成若干个小HashMap，每一把锁用于锁容器中的一部分数据，那么当多线程访问容器里不同数据端的数据时，线程间就不会存在锁竞争，提高了并发访问的效率。当对HashEntry数组的数据进行修改时，必须先获得对应的Segement锁。在JDK1.8中放弃了Segement的概念，直接用**Node数组+链表+红黑树**的结构实现，并发控制使用 **synchronized 和 CAS 来操作**，在 CAS 操作失败时使用内置锁 synchronized。
 
+## 2. 为什么要分段
+
 # 1.存储结构
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Concurrenthashmap-ds.png)
