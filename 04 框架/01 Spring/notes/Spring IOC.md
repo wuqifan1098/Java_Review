@@ -49,7 +49,7 @@ public class HelloWorldApp{
 链接：https://juejin.im/post/5d195530f265da1bb80c4560
 ```
 
-- BeanFactory和ApplicationContext都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：BeanFactory需要手动注册，而ApplicationContext则是自动注册。
+- BeanFactory和ApplicationContext都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：**BeanFactory需要手动注册，而ApplicationContext则是自动注册。**
 
 # 引言
 
