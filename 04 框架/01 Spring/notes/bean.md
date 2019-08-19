@@ -91,6 +91,36 @@ https://www.cnblogs.com/xujian2014/p/5049483.html
 
 ## 2. 如何使用 BeanPostProcessor 和 BeanFactoryPostProcessor ?
 
+## 3. BeanFactory和FactoryBean的区别
+
+区别：BeanFactory是个Factory，也就是IOC容器或对象工厂，FactoryBean是个Bean。在Spring中，**所有的Bean都是由BeanFactory(也就是IOC容器)来进行管理的**。但对FactoryBean而言，**这个Bean不是简单的Bean，而是一个能生产或者修饰对象生成的工厂Bean,它的实现与设计模式中的工厂模式和修饰器模式类似** 
+
+https://www.cnblogs.com/aspirant/p/9082858.html
+
+BeanFactory是一个接口，`public interface BeanFactory`
+
+提供如下方法：
+
+```java
+Object getBean(String name)
+<T> T getBean(String name, Class<T> requiredType)
+<T> T getBean(Class<T> requiredType)
+Object getBean(String name, Object... args)
+boolean containsBean(String name)
+boolean isSingleton(String name)
+boolean isPrototype(String name)
+boolean isTypeMatch(String name, Class<?> targetType)
+Class<?> getType(String name)
+String[] getAliases(String name)
+```
+
+在 Spring 中，`BeanFactory`是 IoC 容器的核心接口。它的职责包括：**实例化、定位、配置应用程序中的对象及建立这些对象间的依赖。**
+
+`BeanFactory` 提供的高级配置机制，使得管理任何性质的对象成为可能。
+ `ApplicationContext` 是 `BeanFactory` 的扩展，功能得到了进一步增强，比如更易与 **Spring AOP 集成、消息资源处理(国际化处理)、事件传递及各种不同应用层的 context 实现(如针对 web 应用的`WebApplicationContext`)。**
+
+FactoryBean也是接口，为IOC容器中Bean的实现提供了更加灵活的方式，FactoryBean在IOC容器的基础上给Bean的实现加上了一个简单工厂模式和装饰模式(如果想了解装饰模式参考：[修饰者模式(装饰者模式，Decoration)](https://www.cnblogs.com/aspirant/p/9083082.html) 我们可以在getObject()方法中灵活配置。
+
 # 含义 #
 
 Bean的含义是可重复使用的Java组件。
