@@ -1,8 +1,8 @@
 # 面试题
 
-# 1.sleep()和wait()区别
+## 1. sleep()和wait()区别
 
-1、这两个方法来自不同的类分别是，sleep来自Thread类，和wait来自Object类。
+1、这两个方法来自不同的类分别是，**sleep来自Thread类，wait来自Object类。**
 
 2、最主要是sleep方法**没有释放锁**，而wait方法**释放了锁**，使得其他线程可以使用同步控制块或者方法。
 
@@ -10,7 +10,7 @@
 
 4、sleep必须捕获异常，而wait，notify和notifyAll不需要捕获异常
 
-# 一.wait()、notify()和notifyAll()
+# wait()、notify()和notifyAll()
 
 wait()、notify()和notifyAll()是Object**类中的方法**：
 
@@ -56,7 +56,7 @@ public class waitAndNotifyDemo(){
 
 https://www.cnblogs.com/PerkinsZhu/p/7439330.html
 
-# 二.Condition
+# Condition
 
 Condition是在java 1.5中才出现的，它用来替代传统的Object的wait()、notify()实现线程间的协作，相比使用Object的wait()、notify()，使用Condition1的**await()、signal()这种方式实现线程间协作更加安全和高效**。因此通常来说比较推荐使用Condition，在阻塞队列那一篇博文中就讲述到了，阻塞队列实际上是使用了Condition来模拟线程间协作。
 

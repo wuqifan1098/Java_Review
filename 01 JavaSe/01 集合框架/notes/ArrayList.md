@@ -90,6 +90,34 @@ ArrayList依然快于LinkedList
 
 https://blog.csdn.net/zymx14/article/details/78324464
 
+## 3. 在ArrayList的循环中删除元素，会不会出现问题？（蘑菇街）
+
+倒序循环
+
+```
+方法一：普通for循环正序删除，删除过程中元素向左移动，不能删除重复的元素
+方法二：普通for循环倒序删除，删除过程中元素向左移动，可以删除重复的元素
+方法三：增强for循环删除，使用ArrayList的remove()方法删除，产生并发修改异常 ConcurrentModificationException
+方法四：迭代器，使用ArrayList的remove()方法删除，产生并发修改异常 ConcurrentModificationException
+方法五：迭代器，使用迭代器的remove()方法删除，可以删除重复的元素，但不推荐
+```
+
+```
+针对普通for循环的错误写法，在遍历第一个字符串b时因为符合删除条件，所以将该元素从数组中删除，并且将后一个元素移动（也就是第二个字符串b）至当前位置，导致下一次循环遍历时后一个字符串b并没有遍历到，所以无法删除。针对这种情况可以倒序删除的方式来避免。
+```
+
+方法五不能保证两个变量修改的一致性，结果具有不确定性，所以不推荐这种方法。
+
+https://www.jianshu.com/p/a7df6082ec00
+
+## 4. fail-fast和fail-safe的区别是什么
+
+快速失败：在用迭代器遍历一个集合对象时，如果遍**历过程中对集合对象的内容进行了修改（增加、删除、修改），则会抛出Concurrent Modification Exception。**
+
+安全失败：采用安全失败机制的集合容器，在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，**在拷贝的集合上进行遍历**，在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发Concurrent Modification Exception。
+
+https://www.cnblogs.com/songanwei/p/9387745.html
+
 # ArrayList
 
 ## 1.概览
@@ -261,20 +289,70 @@ index下标表示插入位置，**先检查下标是否越界，如果是则抛�
 
 ## 4.删除元素
 
-需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上。
-
 ```java
 public E remove(int index) {
-rangeCheck(index);
-modCount++;
-E oldValue = elementData(index);
-int numMoved = size - index - 1;
-if (numMoved > 0)
-    System.arraycopy(elementData, index+1, elementData, index, numMoved);
-elementData[--size] = null; // clear to let GC do its work
-return oldValue;
+    rangeCheck(index);
+
+    modCount++;
+    E oldValue = elementData(index);
+
+    int numMoved = size - index - 1;
+    if (numMoved > 0)
+        System.arraycopy(elementData, index+1, elementData, index,
+                         numMoved);
+    elementData[--size] = null; // clear to let GC do its work
+
+    return oldValue;
+}
+
+public boolean remove(Object o) {
+    if (o == null) {
+        for (int index = 0; index < size; index++)
+            if (elementData[index] == null) {
+                fastRemove(index);
+                return true;
+            }
+    } else {
+        for (int index = 0; index < size; index++)
+            if (o.equals(elementData[index])) {
+                fastRemove(index);
+                return true;
+            }
+    }
+    return false;
+}
+
+private void fastRemove(int index) {
+    modCount++;
+    int numMoved = size - index - 1;
+    if (numMoved > 0)
+        System.arraycopy(elementData, index+1, elementData, index,
+                         numMoved);
+    elementData[--size] = null; // clear to let GC do its work
 }
 ```
+
+根据下标删除的 remove() 方法，大致的步骤如下：
+
+- 检查有没有下标越界，就是检查一下当前的下标有没有大于等于数组的长度
+- 列表被修改（add和remove操作）的次数加1
+- 保存要删除的值
+- 计算移动的元素数量
+- 删除位置后面的元素向左移动，这里是用数组拷贝实现的
+- 将最后一个位置引用设为 null，使垃圾回收器回收这块内存
+- 返回删除元素的值
+
+根据元素删除的 remove() 方法，大致的步骤如下：
+
+- 元素值分为null和非null值
+- 循环遍历判等
+- 调用 fastRemove(i) 函数
+  - 修改次数加1
+  - 计算移动的元素数量
+  - 数组拷贝实现元素向左移动
+  - 将最后一个位置引用设为 null
+  - 返回 fase
+- 返回 true
 
 ## 5.查找元素
 
@@ -288,9 +366,77 @@ public E get(int index) {
 
 这是一个很简单的方法，相信很多人都看得懂，但是仔细想深一层为什么数组通过一个下标就能够查找出元素？**我们在实例化ArrayList的时候，elementData已经完成了初始化。**此时JVM虚拟机中，Java堆中则为elementData数组对象开辟一片连续的内存空间，**虚拟机栈则存储了elementData数组的引用声明，并且引用指向了Java堆的数组首地址。**因此在内存中可以通过：首地址+（元素存储单元×数组下标）=元素地址，快速的寻找对应下标的元素值。
 
-## 6.Fail-Fast
+## 6.Fail-Fast&Fail-Safe
 
-fail-fast 机制，即快速失败机制，是java集合(Collection)中的一种**错误检测机制**。当在迭代集合的过程中该集合在结构上发生改变的时候，就有可能会发生fail-fast，即**抛出ConcurrentModificationException异常**。fail-fast机制并不保证在不同步的修改下一定会抛出异常，它只是尽最大努力去抛出，所以这种机制一般仅用于检测bug。
+### Fail-Fast
+
+即快速失败机制，是java集合(Collection)中的一种**错误检测机制**。当在迭代集合的过程中该**集合在结构上发生改变的时候**，就有可能会发生fail-fast，即**抛出ConcurrentModificationException异常**。fail-fast机制并不保证在不同步的修改下一定会抛出异常，它只是尽最大努力去抛出，所以这种机制一般仅用于检测bug。
+
+原理：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 modCount 变量。集合在被遍历期间如果内容发生变化，就会改变modCount的值。每**当迭代器使用hashNext()/next()遍历下一个元素之前，都会检测modCount变量是否为expectedmodCount值，是的话就返回遍历；否则抛出异常，终止遍历。**
+
+场景：java.util包下的集合类都是快速失败的，不能在多线程下发生并发修改（迭代过程中被修改）。
+
+以下两种情况下抛出ConcurrentModificationException
+
+（1）单线程环境
+
+集合被创建后，在遍历它的过程中修改了结构。
+
+注意 remove()方法会让expectModcount和modcount 相等，所以是不会抛出这个异常。
+
+（2）多线程环境
+
+当一个线程在遍历这个集合，而另一个线程对这个集合的结构进行了修改。
+
+如何监测的？
+
+迭代器在遍历过程中是直接访问内部数据的，因此内部的数据在遍历的过程中无法被修改。为了保证不被修改，迭代器内部维护了一个标记 “mode” ，当集合结构改变（添加删除或者修改），标记"mode"会被修改，而迭代器每次的hasNext()和next()方法都会检查该"mode"是否被改变，当检测到被修改时，抛出Concurrent Modification Exception。
+
+```java
+private class Itr implements Iterator<E> {
+        int cursor;
+        int lastRet = -1;
+        int expectedModCount = ArrayList.this.modCount;
+ 
+        public boolean hasNext() {
+            return (this.cursor != ArrayList.this.size);
+        }
+ 
+        public E next() {
+            checkForComodification();
+            /** 省略此处代码 */
+        }
+ 
+        public void remove() {
+            if (this.lastRet < 0)
+                throw new IllegalStateException();
+            checkForComodification();
+            /** 省略此处代码 */
+        }
+ 
+        final void checkForComodification() {
+            if (ArrayList.this.modCount == this.expectedModCount)
+                return;
+            throw new ConcurrentModificationException();
+        }
+    }
+```
+
+### Fail-Safe
+
+任何对集合结构的修改都会在一个复制的集合上进行修改，因此不会抛出ConcurrentModificationException
+
+  缺点：基于拷贝内容的优点是避免了Concurrent Modification Exception，但同样地，迭代器并不能访问到修改后的内容，即：迭代器遍历的是开始遍历那一刻拿到的集合拷贝，在遍历期间原集合发生的修改迭代器是不知道的。
+
+  场景：java.util.concurrent包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
+
+fail-safe机制有两个问题
+
+（1）需要复制集合，产生大量的无效对象，开销大
+
+（2）无法保证读取的数据是目前原始数据结构中的数据。
+
+
 
 ## 7.SubList
 

@@ -44,6 +44,10 @@ CountDownLatch
 
 ## 6.实现CountDownLatch需要捕捉异常，为什么需要捕捉异常？（美团）
 
+## 7. Semaphore拿到执行权的线程之间是否互斥
+
+Semaphore可以有多个锁，可允许多个线程拥有执行权，如果并发访问同一个对象，会产生线程安全问题。
+
 # CountDownLatch
 
 ## 1、简介

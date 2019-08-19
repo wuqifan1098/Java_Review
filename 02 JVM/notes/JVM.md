@@ -24,6 +24,23 @@ new的时候都会在堆上，只是栈上会存该对象的地址，不然这�
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E8%BF%87%E7%A8%8B.png)
 
+## 5. PermGen与Metaspace
+
+java8的时候去除PermGen，将其中的**方法区移到non-heap中的Metaspace**
+
+Metaspace与PermGen之间最大的区别在于：Metaspace并不在虚拟机中，**而是使用本地内存。**
+
+因此，默认情况下，元空间的**大小仅受本地内存限制**。
+
+将**常量池从PermGen剥离到heap中**，将**元数据从PermGen剥离到元数据区**，去除PermGen的好处如下：
+
+- 将字符串常量池从PermGen分离出来，**与类元数据分开，提升类元数据的独立性**
+- 将元数据从PermGen剥离出来到Metaspace，可以**提升对元数据的管理同时提升GC效率**。
+
+## 6.为什么移除永久代
+
+永久代的垃圾收集是和老年代(old generation)捆绑在一起的，**因此无论谁满了，都会触发永久代和老年代的垃圾收集**。不过，一个明显的问题是，当JVM加载的类**信息容量超过了参数-XX：MaxPermSize设定的值时，应用将会报OOM的错误**。也就是说永久代的最大空间一定得有个指定值，而如果MaxPermSize指定不当，就会OOM)。
+
 ## jvm的本质
 
 ### 一、前言

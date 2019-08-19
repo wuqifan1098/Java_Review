@@ -2,6 +2,42 @@
 
 ## 1. liunx怎么定位死锁
 
+
+
+## 2. 查看监听端口号的命令
+
+```shell
+netstat命令根据进程pid查端口
+netstat -nap | grep pid
+根据端口port查进程
+netstat -nap | grep port
+lsof命令：根据进程pid查端口
+lsof -i | grep pid
+根据端口port查进程
+lsof  -i:port
+```
+
+## 3. Linux环境下上线一个服务,如果CPU占用太满了,怎么排查。
+
+- **top**
+
+  top命令查看, 是否有java进程占用CPU过高
+
+- **top -H -p  进程号**
+
+  查看异常线程
+
+- **printf "%x\n" 线程号**
+
+  将异常线程号转化为16进制
+
+- **jstack 进程号|grep 16进制异常线程号 -A90**
+
+  定位异常代码的位置
+
+- 项目**代码中排查有问题的代码**, 问题出在xx行代码, 造成了cpu的满载问题
+
+
 # 一、文件和目录
 
 ### 1. cd命令 
