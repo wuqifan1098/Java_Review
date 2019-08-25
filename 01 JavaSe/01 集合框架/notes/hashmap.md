@@ -683,6 +683,8 @@ for (int j = 0; j < src.length; j++) { //遍历旧的Entry数组
 
 https://www.jianshu.com/p/13c650a25ed3
 
+
+
 ## hash()函数分析（JDK 1.8）
 
 ```java
@@ -718,7 +720,42 @@ https://www.cnblogs.com/zyrblog/p/9881958.html
 
 https://www.zhihu.com/question/20733617
 
+## Java8 中HashMap的优化（引入红黑树的数据结构和扩容的优化）
 
+1. if (binCount >= TREEIFY_THRESHOLD - 1) 当符合这个条件的时候，把链表变成treemap红黑树，这样查找效率从o(n)变成了o(log n) ，在JDK1.8的实现中，优化了高位运算的算法，通过hashCode()的高16位异或低16位实现的：
+2. 我们使用的是2次幂的扩展(指长度扩为原来2倍)，所以，元素的位置要么是在原位置，要么是在原位置再移动2次幂的位置
+
+这里的Hash算法本质上就是三步：取key的hashCode值、高位运算、取模运算。
+
+**元素在重新计算hash之后，因为n变为2倍，那么n-1的mask范围在高位多1bit(红色)，因此新的index就会发生这样的变化：**hashMap 1.8 哈希算法例图2 [![img](https://github.com/zaiyunduan123/Java-Interview/raw/master/image/Java-2.jpg)](https://github.com/zaiyunduan123/Java-Interview/blob/master/image/Java-2.jpg)**因此，我们在扩充HashMap的时候，不需要像JDK1.7的实现那样重新计算hash，只需要看看原来的hash值新增的那个bit是1还是0就好了，是0的话索引没变，是1的话索引变成“原索引+oldCap”**】
+
+### JDK 1.7 HashMap扩容导致死循环的主要原因
+
+HashMap扩容导致死循环的主要原因在于扩容后链表中的节点在新的hash桶使用头插法插入。
+
+新的hash桶会倒置原hash桶中的单链表，那么在多个线程同时扩容的情况下就可能导致产生一个存在闭环的单链表，从而导致死循环。
+
+### JDK 1.8 HashMap扩容不会造成死循环的原因
+
+在JDK 1.8中执行上面的扩容死循环代码示例就不会发生死循环，我们可以理解为在JDK 1.8 HashMap扩容不会造成死循环，但还是需要理论依据才有信服力。
+
+首先通过上面的分析我们知道JDK 1.7中HashMap扩容发生死循环的主要原因在于扩容后链表倒置以及链表过长。
+
+那么在JDK 1.8中HashMap扩容不会造成死循环的主要原因就从这两个角度去分析一下。
+
+由于扩容是按两倍进行扩，即 N 扩为 N + N，因此就会存在低位部分 0 - (N-1)，以及高位部分 N - (2N-1)， 所以在扩容时分为 loHead (low Head) 和 hiHead (high head)。
+
+然后将原hash桶中单链表上的节点按照尾插法插入到loHead和hiHead所引用的单链表中。
+
+由于使用的是尾插法，不会导致单链表的倒置，所以扩容的时候不会导致死循环。
+
+通过上面的分析，不难发现循环的产生是因为新链表的顺序跟旧的链表是完全相反的，所以只要保证建新链时还是按照原来的顺序的话就不会产生循环。
+
+如果单链表的长度达到 8 ，就会自动转成红黑树，而转成红黑树之前产生的单链表的逻辑也是借助loHead (low Head) 和 hiHead (high head)，采用尾插法。然后再根据单链表生成红黑树，也不会导致发生死循环。
+
+这里虽然JDK 1.8 中HashMap扩容的时候不会造成死循环，但是如果多个线程同时执行put操作，可能会导致同时向一个单链表中插入数据，从而导致数据丢失的。
+
+原文链接：https://blog.csdn.net/Leon_cx/article/details/81911223
 
 # 与 HashTable 的比较
 

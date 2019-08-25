@@ -2,6 +2,76 @@
 
 ## 1. ReentrantLock 公平和非公平原理（百词斩）
 
+关于NonfairSync代码如下所示：
+
+```java
+static final class NonfairSync extends Sync {
+        final void lock() {
+            if (compareAndSetState(0, 1))////直接获取同步状态成功，那么就不再走尝试获取锁的过程
+                setExclusiveOwnerThread(Thread.currentThread());
+            else
+                acquire(1);
+        }
+
+        protected final boolean tryAcquire(int acquires) {
+            return nonfairTryAcquire(acquires);
+        }
+    }
+```
+
+当我们调用lock()方法时，**通过CAS操作将AQS中的state的状态设置为1，**如果成功，那么表示获取同步状态成功。那么会接着调用`setExclusiveOwnerThread(Thread thread)`方法来设置当前占有锁的线程。如果失败，则**调用`acquire(int arg)`方法来获取同步状态**（该方法是属于AQS中的独占式获取同步状态的方法，对该方法不熟悉的小伙伴，建议阅读[Java并发编程之锁机制之AQS(AbstractQueuedSynchronizer)](https://juejin.im/post/5bbf04d5f265da0ad947f05b)）。而该方法内部会调用`tryAcquire(int acquires)`来尝试获取同步状态。通过观察，我们发现最终会调用`Sync`类中的`nonfairTryAcquire(int acquires)`方法。我们继续跟踪。
+
+```java
+ final boolean nonfairTryAcquire(int acquires) {
+		    //获取当前线程
+            final Thread current = Thread.currentThread();
+            int c = getState();
+            //(1)判断同步状态，如果未设置，则设置同步状态
+            if (c == 0) {
+                if (compareAndSetState(0, acquires)) {
+                    setExclusiveOwnerThread(current);
+                    return true;
+                }
+            }
+            //(2)如果当前线程已经获取了同步状态，则增加同步状态的值。
+            else if (current == getExclusiveOwnerThread()) {
+                int nextc = c + acquires;
+                if (nextc < 0) // overflow
+                    throw new Error("Maximum lock count exceeded");
+                setState(nextc);
+                return true;
+            }
+            return false;
+        }
+```
+
+从代码上来看，该方法主要走两个步骤，具体如下所示：
+
+- （1）先判断同步状态， 如果未曾设置，则设置同步状态，并设置当前占有锁的线程。
+- （2）判断是否是同一线程，如果当前线程已经获取了同步状态（也就是获取了锁），那么增加同步状态的值。
+
+### 非公平锁
+
+在ReentrantLock中有着`非公平锁`与`公平锁`的概念，这里我先简单的介绍一下`公平`这两个字的含义。**这里的公平是指线程获取锁的顺序。也就是说锁的获取顺序是按照当前线程请求的绝对时间顺序，当然前提条件下是该线程获取锁成功**。
+
+非公平锁获取同步状态（获取锁）时不会考虑同步队列中等待的问题。会直接尝试获取锁。也就是会存在后申请，但是会先获得同步状态（获取锁）的情况。
+
+### 公平锁
+
+从源码我们可以看出，非公平锁与公平锁之间的代码唯一区别就是多了一个判断条件!hasQueuedPredecessors
+
+```java
+   public final boolean hasQueuedPredecessors() {
+        Node t = tail;
+        Node h = head;
+        Node s;
+        return h != t &&
+            ((s = h.next) == null || s.thread != Thread.currentThread());
+    }
+```
+
+代码理解理解起来非常简单，就是判断当前当前head节点的next节点是不是当前请求同步状态（请求锁）的线程。也就是语句 `((s = h.next) == null || s.thread != Thread.currentThread()`。
+
 # 1.简介
 
 ReentrantLock： 
