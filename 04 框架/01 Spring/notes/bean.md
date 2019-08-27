@@ -91,6 +91,8 @@ https://www.cnblogs.com/xujian2014/p/5049483.html
 
 ## 2. 如何使用 BeanPostProcessor 和 BeanFactoryPostProcessor ?
 
+
+
 ## 3. BeanFactory和FactoryBean的区别
 
 区别：BeanFactory是个Factory，也就是IOC容器或对象工厂，FactoryBean是个Bean。在Spring中，**所有的Bean都是由BeanFactory(也就是IOC容器)来进行管理的**。但对FactoryBean而言，**这个Bean不是简单的Bean，而是一个能生产或者修饰对象生成的工厂Bean,它的实现与设计模式中的工厂模式和修饰器模式类似** 
@@ -121,6 +123,22 @@ String[] getAliases(String name)
 
 FactoryBean也是接口，为IOC容器中Bean的实现提供了更加灵活的方式，FactoryBean在IOC容器的基础上给Bean的实现加上了一个简单工厂模式和装饰模式(如果想了解装饰模式参考：[修饰者模式(装饰者模式，Decoration)](https://www.cnblogs.com/aspirant/p/9083082.html) 我们可以在getObject()方法中灵活配置。
 
+## 4.Bean的注入方式
+
+- 属性注入
+- 构造器注入
+- 工厂方法注入
+
+## 5. 解决循环依赖的方式
+
+
+
+## 6. bean的初始化和销毁几种方式
+
+- init-method和destroy-method 通过属性指定[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后 /销毁之前调用的操作方法
+- InitializingBean 和DisposableBean  实现接口来定制[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后/销毁之前的操作方法
+- @PostConstruct或@PreDestroy 在指定方法上加上注解来制定方法是在[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后还是销毁之前调用。
+
 # 含义 #
 
 Bean的含义是可重复使用的Java组件。
@@ -136,6 +154,18 @@ Spring帮我们做的就是根据配置文件来创建Bean实例，并调用Bean
  比较常用的是**singleton 和 prototype 两种作用域**，对于singleton作用域，每次请求该Bean都将获得相同的实例，Spring容器负责跟踪监视Bean实例的状态，负责维护Bean实例的生命周期行为，如果一个Bean被设置成prototype作用域，程序每次请求该id的Bean，Spring都会创建一个新的Bean实例，然后返回给程序，在这种情况下，**Spring容器仅仅使用new 关键字创建Bean实例，一旦创建成功，容器Spring不再对Bean的生命周期负责，也不会维护Bean实例的状态。**
 
  如果不指定Bean的作用域，Spring**默认使用singleton作用域**。Java在常见Java实例时，需要进行内存申请，销毁实例是，需要完成垃圾回收，这些工作都会导致系统开销的增加。因此prototype作用域Bean的创建销毁代价比较大。而singleton作用域的Bean 实例一旦创建成功，可以重复使用，因此，除非必要，否则避免将Bean作用域设置成prototype。
+
+# 初始化过程
+
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/bean%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96.png)
+
+简要总结：
+
+- BeanDefinitionReader**读取Resource所指向的配置文件资源**，然后解析配置文件。配置文件中每一个`<bean>`解析成一个**BeanDefinition对象**，并**保存**到BeanDefinitionRegistry中；
+- 容器扫描BeanDefinitionRegistry中的BeanDefinition；调用InstantiationStrategy**进行Bean实例化的工作**；使用**BeanWrapper完成Bean属性的设置**工作；
+- 单例Bean缓存池：Spring 在DefaultSingletonBeanRegistry类中提供了一个用于缓存单实例 Bean 的**缓存器**，它是一个用HashMap实现的缓存器，单实例的Bean**以beanName为键保存在这个HashMap**中。
+
+<https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&mid=2247484247&idx=1&sn=e228e29e344559e469ac3ecfa9715217&chksm=ebd74256dca0cb40059f3f627fc9450f916c1e1b39ba741842d91774f5bb7f518063e5acf5a0&scene=21##wechat_redirect>
 
 # 生命周期 #
 

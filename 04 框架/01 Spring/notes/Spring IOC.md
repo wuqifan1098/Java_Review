@@ -30,7 +30,7 @@ DI 就是**将spring管理的对象通过 AutoWrite 注解注入到我们需要�
 - Spring的核心是容器，而容器并不唯一，框架本身就提供了很多个容器的实现，大概分为两种类型：
   一种是不常用的BeanFactory，这是**最简单的容器，只能提供基本的DI功能；**
   一种就是继承了BeanFactory后派生而来的ApplicationContext(应用上下文)，它能提供更多企业级的服务，**例如解析配置文本信息等等，这也是ApplicationContext实例对象最常见的应用场景。**
-- BeanFactroy采用的是**延迟加载形式来注入Bean的**，即**只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化**。这样，我们就不能发现一些存在的Spring的配置问题。如果Bean的某一个属性没有注入，BeanFacotry加载后，**直至第一次使用调用getBean方法才会抛出异常。**实现 BeanFactory 最常用的 API 是 XMLBeanFactory 这里是如何通过 BeanFactory 获取一个 bean 的例子：
+- ApplicationContext在**初始化**应用上下文的时候**就实例化所有单实例的Bean**。BeanFactroy采用的是**延迟加载形式来注入Bean的**，即**只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化**。这样，我们就不能发现一些存在的Spring的配置问题。如果Bean的某一个属性没有注入，BeanFacotry加载后，**直至第一次使用调用getBean方法才会抛出异常。**实现 BeanFactory 最常用的 API 是 XMLBeanFactory 这里是如何通过 BeanFactory 获取一个 bean 的例子：
 
 ```java
 package com.zoltanraffai;  
@@ -50,6 +50,8 @@ public class HelloWorldApp{
 ```
 
 - BeanFactory和ApplicationContext都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：**BeanFactory需要手动注册，而ApplicationContext则是自动注册。**
+
+  ApplicationContext会**利用Java反射机制自动识别**出配置文件中定义的BeanPostProcessor、 InstantiationAwareBeanPostProcesso 和BeanFactoryPostProcessor**后置器**，并**自动将它们注册到应用上**下文中。而BeanFactory需要在代码中通过**手工调用**`addBeanPostProcessor()`方法进行注册
 
 # 引言
 
