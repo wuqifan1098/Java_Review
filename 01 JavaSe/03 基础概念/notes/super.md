@@ -1,6 +1,6 @@
-## [super](https://cyc2018.github.io/CS-Notes/#/notes/Java 基础?id=super)
+## super
 
-- 访问父类的构造函数：可以使用 super() 函数访问父类的构造函数，从而委托父类完成一些初始化的工作。
+- 访问父类的构造函数：可以使用 super() 函数访问父类的构造函数，从**而委托父类完成一些初始化的工作**。
 - 访问父类的成员：如果子类重写了父类的某个方法，可以通过使用 super 关键字来引用父类的方法实现。
 
 ```java
@@ -17,7 +17,7 @@ public class SuperExample {
     public void func() {
         System.out.println("SuperExample.func()");
     }
-}Copy to clipboardErrorCopied
+}
 public class SuperExtendExample extends SuperExample {
 
     private int z;
@@ -32,9 +32,9 @@ public class SuperExtendExample extends SuperExample {
         super.func();
         System.out.println("SuperExtendExample.func()");
     }
-}Copy to clipboardErrorCopied
+}
 SuperExample e = new SuperExtendExample(1, 2, 3);
-e.func();Copy to clipboardErrorCopied
+e.func();
 SuperExample.func()
 SuperExtendExample.func()
 ```

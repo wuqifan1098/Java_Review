@@ -26,6 +26,13 @@
 
 正确的场景应该是 WaitSet中**等待的是相同的条件，唤醒任一个都能正确处理接下来的事项**，如果唤醒的线程无法正确处理，务必确保继续notify()下一个线程，并且自身需要重新回到WaitSet中（参见下一条）
 
+## 4. 为什么Object.wait(),Object.notify(),Object.notifyAll()必须在同步块中执行呢?
+
+- 调用wait()就是释放锁，**释放锁的前提是必须要先获得锁**，先获得锁才能释放锁。
+- notify(),notifyAll()是**将锁交给含有wait()方法的线程**，让其继续执行下去，如果自身没有锁，怎么叫把锁交给其他线程呢；（本质是让处于入口队列的线程竞争锁）
+
+<https://blog.csdn.net/qq_42145871/article/details/81950949>
+
 # wait()、notify()和notifyAll()
 
 wait()、notify()和notifyAll()是Object**类中的方法**：

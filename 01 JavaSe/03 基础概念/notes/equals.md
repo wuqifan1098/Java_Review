@@ -47,7 +47,7 @@ System.out.println(e1.equals(e2)); // true
 HashSet<EqualExample> set = new HashSet<>();
 set.add(e1);
 set.add(e2);
-System.out.println(set.size());   // 2Copy to clipboardErrorCopied
+System.out.println(set.size());   // 2
 ```
 
 理想的散列函数应当具有均匀性，即不相等的对象应当均匀分布到所有可能的散列值上。这就要求了散列函数要把所有域的值都考虑进来。可以将每个域都当成 R 进制的某一位，然后组成一个 R 进制的整数。R 一般取 31，因为它是一个奇素数，如果是偶数的话，当出现乘法溢出，信息就会丢失，因为与 2 相乘相当于向左移一位。
@@ -62,7 +62,7 @@ public int hashCode() {
     result = 31 * result + y;
     result = 31 * result + z;
     return result;
-}Copy to clipboardErrorCopied
+}
 ```
 
 ## [toString()](https://cyc2018.github.io/CS-Notes/#/notes/Java 基础?id=tostring)
@@ -77,8 +77,8 @@ public class ToStringExample {
     public ToStringExample(int number) {
         this.number = number;
     }
-}Copy to clipboardErrorCopied
+}
 ToStringExample example = new ToStringExample(123);
-System.out.println(example.toString());Copy to clipboardErrorCopied
+System.out.println(example.toString());
 ToStringExample@4554617c
 ```
