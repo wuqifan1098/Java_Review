@@ -33,6 +33,10 @@
 
 <https://blog.csdn.net/qq_42145871/article/details/81950949>
 
+## 5.为什么wait(),notify()是Object方法？
+
+**一个很明显的原因是JAVA提供的锁是对象级的而不是线程级的，每个对象都有锁，通过线程获得。**如果线程需要等待某些锁那么调用对象中的wait()方法就有意义了。如果wait()方法定义在Thread类中，线程正在等待的是哪个锁就不明显了。
+
 # wait()、notify()和notifyAll()
 
 wait()、notify()和notifyAll()是Object**类中的方法**：

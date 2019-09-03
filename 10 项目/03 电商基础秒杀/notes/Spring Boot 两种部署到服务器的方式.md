@@ -19,7 +19,6 @@ ps:Linux jar包运行命令详细说明，请查看这篇博客：Linux后台运
 
 我的项目配置： 
 
-
 ======================= 
 我们再看看进程： 
 执行jps，如下图，我们可以看到jar 进程有两个，原因是我这里使用java -jar 启动了两个项目。 
@@ -165,6 +164,4 @@ application.yml中配置的server.port。
 下图是使用spring boot 内置tomcat启动日志，可以看出配置的server.port是生效了的！ 
 
 作者：我跟吴彦祖四六开 
-来源：CSDN 
 原文：https://blog.csdn.net/qq_22638399/article/details/81506448 
-版权声明：本文为博主原创文章，转载请附上博文链接！

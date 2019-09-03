@@ -2,6 +2,20 @@
 
 ## 1.Unsafe类详解一下（360企业安全）
 
+Unsafe为我们提供了访问底层的机制，这种机制仅供java核心类库使用
+
+（1）实例化一个类；
+
+（2）修改私有字段的值；
+
+（3）抛出checked异常；
+
+（4）使用堆外内存；
+
+（5）CAS操作；
+
+（6）阻塞/唤醒线程；
+
 ## 2.CAS中unsafe调的哪个方法（360企业安全）
 
 compareAndSwapInt()
@@ -28,6 +42,12 @@ https://www.cnblogs.com/zyrblog/p/9881958.html
 volatile是一种**JVM提供的轻量级的同步机制**，不会阻塞线程。Java内存模型告诉我们，各个线程会从将共享变量从主内存拷贝到工作内存，然后基于工作内存中的数据进行操作。线程对volatile修饰变量的**修改会立刻被其他线程锁感知**，不会出现数据脏读的现象，可以**保证可见性**。对任意**单个volatile变量的读/写具有原子性**，但类似于volatile++这种**复合操作不具有原子性。**
 
 https://www.cnblogs.com/getting-better/p/3245993.html
+
+**一方面是因为synchronized是一种锁机制，存在阻塞问题和性能问题，而volatile并不是锁，所以不存在阻塞和性能问题。**
+
+另外一方面，因为**volatile借助了内存屏障来帮助其解决可见性和有序性问题，而内存屏障的使用还为其带来了一个禁止指令重排的附件功能，所以在有些场景中是可以避免发生指令重排的问题的。**
+
+<https://mp.weixin.qq.com/s?__biz=MzI3NzE0NjcwMg==&mid=2650124577&idx=1&sn=4f471855e58d2ded0c9044a3a7e9c698&chksm=f36bac00c41c25166ec3ca43e5811984e4977e8cbbd5f14947fb4d0bc9c67b4a80c726699ff2&mpshare=1&scene=1&srcid=&sharer_sharetime=1566227411677&sharer_shareid=6bdaaaa7a7186e9db8bed8df0280488e&key=0d0f56805bab0f0bffbb452991d4089e22eca92e0394df0320e46cb8951a1521f68614aa3b3e18e18472614c2f06903a9abeaeece5a8fd9d84c6774c0176d02b55fda8541641aee7ac3a32a40e8ea5a7&ascene=1&uin=NjQwMDg5ODE2&devicetype=Windows+10&version=62060833&lang=zh_CN&pass_ticket=GyAV0HglPjKSSS6TWDUd4kfc2fKq6HQ%2Bovbj%2B75KzMzPFzV88qAK6%2Fda65%2FMv6J1>
 
 ## 1.volatile是JVM提供的轻量级的同步机制
 

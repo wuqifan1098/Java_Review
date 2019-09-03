@@ -176,7 +176,7 @@ System.out.println(strings);
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Terminal%20Result.jpg)
 
-### 总结
+# 总结
 
 本文介绍了Java 8中的Stream 的用途，优点等。还接受了Stream的几种用法，分别是Stream创建、中间操作和最终操作。
 
@@ -189,3 +189,5 @@ Stream的最终操作可以将Stream转成其他形式，如计算出流中元�
 转载 ：
 
 https://github.com/hollischuang/toBeTopJavaer/blob/master/basics/java-basic/stream.md
+
+<https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&mid=2247485508&idx=2&sn=a686a128ccbcfa1fcc000d8b9de14155&chksm=ebd74945dca0c05378c3083c6efda294ea11db25705436d08a6d6af4e82993cac99804ee1553&mpshare=1&scene=1&srcid=&sharer_sharetime=1565504380654&sharer_shareid=6bdaaaa7a7186e9db8bed8df0280488e&key=904260214fdf0829875a31dd0ab1872314b98e93396cffa34e33bda443a13ff682790824cc1be82c4d1f43a239663572d706d13350cbc7c7179aca06eb6002005ea6567413286998bd384a5a47934091&ascene=1&uin=NjQwMDg5ODE2&devicetype=Windows+10&version=62060833&lang=zh_CN&pass_ticket=GyAV0HglPjKSSS6TWDUd4kfc2fKq6HQ%2Bovbj%2B75KzMzPFzV88qAK6%2Fda65%2FMv6J1>
