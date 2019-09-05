@@ -473,7 +473,6 @@ TreeSet**中不能有重复对象，而TreeMap中可以存在。**
 5、相对HashSet,TreeSet的优势是有序，劣势是相对读取慢。根据不同的场景选择不同的集合。
 
 作者：青年小篆 
-来源：CSDN 
 原文：https://blog.csdn.net/u010176014/article/details/52096398 
-版权声明：本文为博主原创文章，转载请附上博文链接！
+
 

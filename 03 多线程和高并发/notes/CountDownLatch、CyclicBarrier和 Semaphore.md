@@ -44,13 +44,15 @@ CountDownLatch
 
 ## 6.实现CountDownLatch需要捕捉异常，为什么需要捕捉异常？（美团）
 
+
+
 ## 7. Semaphore拿到执行权的线程之间是否互斥
 
 Semaphore可以有多个锁，可允许多个线程拥有执行权，如果并发访问同一个对象，会产生线程安全问题。
 
 # CountDownLatch
 
-## 1、简介
+## 1.简介
 
 　　CountDownLatch是Java1.5之后引入的Java并发工具类，放在java.util.concurrent包下面 http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html 官方API。
 
@@ -64,11 +66,11 @@ Semaphore可以有多个锁，可允许多个线程拥有执行权，如果并�
 
 　　这里的主线程是相对的概念，需要根据CountDownLatch创建的场景分析。
 
-## 2、实现原理
+## 2.实现原理
 
 同步功能是**基于 AQS 实现的**，CountDownLatch 使用 AQS 中的 **state 成员变量**作为计数器，在 state 不为0的情况下，凡是调用 await 方法的线程将会被阻塞，并被放入 AQS 所维护的同步队列中进行等待。
 
-## 3、主要方法
+## 3.主要方法
 
 ```java
 特有方法： 
@@ -81,7 +83,7 @@ From Object Inherited：
 Clone、equals、hashCode、notify、notifyALL、wait等。
 ```
 
-## 4、使用场景
+## 4.使用场景
 
 （1）开启多个线程分块下载一个大文件，每个线程只下载固定的一截，最后由另外一个线程来拼接所有的分段。
 
@@ -89,7 +91,7 @@ Clone、equals、hashCode、notify、notifyALL、wait等。
 
 （3）确保一个计算不会执行，直到所需要的资源被初始化。
 
-# 5、Demo
+## 5.Demo
 
 ```java
 public class CountDownLatchDemo{
@@ -108,15 +110,13 @@ public class CountDownLatchDemo{
 }
 ```
 
-
-
 # CyclicBarrier
 
 ## 1.简介
 
 CyclicBarrier 的字面意思是可循环使用(Cyclic)的屏障(Barrier)。它要做的事情是，**让一组线程到达一个屏障(也可以叫同步点)时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。**CyclicBarrier默认的构造方法是CyclicBarrier(int parties)，其参数表示屏障拦截的线程数量，每个线程调用await方法告诉CyclicBarrier我已经到达了屏障，然后当前线程被阻塞。
 
-当一个线程到达集合点时，它将调用await()方法等待其它的线程。线程调用await()方法后，CyclicBarrier将阻塞这个线程，并将它置入休眠状态等待其它线程的到来。等最后一个线程调用await()方法时，CyclicBarrier将唤醒所有等待的线程，然后这些线程将继续执行。
+当一个线程到达集合点时，它将调用await()方法等待其它的线程。线程调用await()方法后，CyclicBarrier将**阻塞这个线程，并将它置入休眠状态等待其它线程的到来**。等最后一个线程调用await()方法时，CyclicBarrier将**唤醒所有等待的线程，然后这些线程将继续执行。**
 
 ## 2.原理
 
@@ -138,7 +138,7 @@ CyclicBarrier类有两个常用的构造方法：
 
 案例场景：有4个游戏玩家玩游戏，游戏有三个关卡，每个关卡必须要所有玩家都到达后才能允许通过。其实这个场景里的玩家中如果有玩家A先到了关卡1，他必须等到其他所有玩家都到达关卡1时才能通过，也就是说线程之间需要相互等待。这和CountDownLatch的应用场景有区别，CountDownLatch里的线程是到了运行的目标后继续干自己的其他事情，而这里的线程需要等待其他线程后才能继续完成后面的工作。 
 
-# 4.Demo
+## 4.Demo
 
 ```java
 public class CyclicBarrierDemo{

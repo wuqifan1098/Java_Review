@@ -15,9 +15,23 @@ public ListNode reverseKGroup(ListNode head, int k){
 
 ```java
 public class addList(ListNode l1, ListNode l2){
-	ListNode dummy = new ListNode(0);//当前节点
-	ListNode p = l1, q = l2, cur = dummy;//当前节点为
-
+	ListNode head = new ListNode(0);
+    ListNode p = l1;
+    ListNode q = l2;
+    int carry = 0;
+    while(p != null || q != null){
+        int x = (p != null)? p.val : 0;
+        int y = (q != null)? q.val : 0;
+        int sum = carry + x + y;
+        carry = sum / 10;
+        head.next = new ListNode(sum % 10);
+        cur = cur.next;
+        if(p != null) p = p.next;
+        if(q != null) q = q.next;      
+    }if(carry > 0){
+        cur.next = new ListNode(carry);
+    }
+	return cur.next;
 }
 ```
 
@@ -61,20 +75,20 @@ public class addList(ListNode l1, ListNode l2){
 ```java
 public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
     ListNode dummyHead = new ListNode(0);
-    ListNode p = l1, q = l2, curr = dummyHead;
+    ListNode p = l1, q = l2, cur = dummyHead;
     int carry = 0;
     while (p != null || q != null) {
         int x = (p != null) ? p.val : 0;
         int y = (q != null) ? q.val : 0;
         int sum = carry + x + y;
         carry = sum / 10;
-        curr.next = new ListNode(sum % 10);
-        curr = curr.next;
+        cur.next = new ListNode(sum % 10);
+        cur = cur.next;
         if (p != null) p = p.next;
         if (q != null) q = q.next;
     }
     if (carry > 0) {
-        curr.next = new ListNode(carry);
+        cur.next = new ListNode(carry);
     }
     return dummyHead.next;
 }

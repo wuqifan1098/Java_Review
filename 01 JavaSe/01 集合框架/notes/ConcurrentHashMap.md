@@ -6,6 +6,32 @@ ConcurrentHashMap是一种线程安全且高效的HashMap。在JDK1.7中底层�
 
 ## 2. 为什么要分段
 
+HashTable容器在竞争激烈的并发环境下表现出效率低下的原因，是因为所有访问HashTable的线程都**必须竞争同一把锁**，那假如容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率，这就是ConcurrentHashMap所使用的锁分段技术，首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问。
+
+原文链接：https://blog.csdn.net/dianzijinglin/article/details/80998555
+
+## 3. ConcurrentHashMap分段锁怎么实现的
+
+Segment 通过**继承 ReentrantLock 来进行加锁**，所以每次需要加锁的操作锁住的是一个 segment，这样只要保证每个 Segment 是线程安全的，也就实现了全局的线程安全。
+
+## 4. 扩容
+
+segment 数组不能扩容，扩容是 segment 数组**某个位置内部的数组 HashEntry<K,V>[] 进行扩容，扩容后，容量为原来的 2 倍。**
+
+首先，我们要回顾一下触发扩容的地方，put 的时候，如果判断该值的插入会导致该 segment 的元素个数超过阈值，那么先进行扩容，再插值，读者这个时候可以回去 put 方法看一眼。
+
+该方法不需要考虑并发，因为到这里的时候，是持有该 segment 的独占锁的。
+
+<https://www.javadoop.com/post/hashmap>
+
+## 5.Java8为什么放弃分段锁
+
+加入多个分段锁浪费内存空间。
+
+生产环境中， map 在放入时竞争同一个锁的概率非常小，分段锁反而会造成更新等操作的长时间等待。
+
+为了提高 GC 的效率
+
 # 1.存储结构
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Concurrenthashmap-ds.png)
@@ -172,7 +198,7 @@ Segment<K,V> s = (Segment<K,V>)UNSAFE.getObjectVolatile(segments, u)
 
 JDK 1.7 使用**分段锁机制**来实现并发更新操作，核心类为 Segment，它**继承自重入锁 ReentrantLock**，并发程度与 Segment 数量相等。
 
-JDK1.8 的时候已经**摒弃了Segment的概念**，而是直接用 Node 数组+链表+红黑树的数据结构来实现，并发控制使用 **synchronized 和 CAS 来操作**，在 CAS 操作失败时使用内置锁 synchronized。
+JDK1.8 的时候已经**摒弃了Segment的概念**，而是直接用 **Node 数组+链表+红黑树**的数据结构来实现，并发控制使用 **synchronized 和 CAS 来操作**，在 CAS 操作失败时使用内置锁 synchronized。
 
 数据结构跟HashMap1.8的结构类似，数组+链表/红黑二叉树。
 
@@ -195,7 +221,7 @@ synchronized只锁定当前链表或红黑二叉树的首节点，这样只要ha
 
 - Node 普通结点类型
 
-这里先来说一下CAS+volatile的组合，这两个是整个JUC包的基石。volatile 读的内存语义：当读一个volatile变量时，JMM会把线程u敌营的本地内存置为无效，线程接下来将从主内存中读取值。volatile写的内存语义：当写一个volatile变量时，JMM会到主内存中取读值。JSR-133增强volatile内存语义：之前旧的JMM允许volatile变量与普通变量重排序，之后严格限制编译器和处理器对volatile变量与普通变量的重排序，确保volatile写-读与锁的释放-获取有相同语义。也就是说：写线程A在写这个volatile变量之前所有可见的共享变量的值都将立即变得对读线程B可见。A写一个volatile变量，随后B读到这个volatile变量，这个过程实质上是线程A通过主内存向线程B发送消息。而CAS同时具有volatile读/写的内存语义，以Intel X86来说，就是利用在CMPXCHG指令前添加lock前缀来实现。
+这里先来说一下CAS+volatile的组合，这两个是整个JUC包的基石。volatile 读的内存语义：当读一个volatile变量时，JMM会把线程的本地内存置为无效，线程接下来将**从主内存中读取值**。volatile写的内存语义：当写一个volatile变量时，JMM会**到主内存中取读值**。JSR-133增强volatile内存语义：之前旧的JMM允许volatile变量与普通变量重排序，之后严格限制编译器和处理器对volatile变量与普通变量的重排序，确保volatile写-读与锁的释放-获取有相同语义。也就是说：写线程A在写这个volatile变量之前所有可见的共享变量的值都将立即变得对读线程B可见。A写一个volatile变量，随后B读到这个volatile变量，这个过程实质上是线程A通过主内存向线程B发送消息。而CAS同时具有volatile读/写的内存语义，以Intel X86来说，就是利用在CMPXCHG指令前添加lock前缀来实现。
 
 volatile的读写和CAS可以实现线程之间的通信，整合到一起就实现了Concurrent包得以实现的基石。在阅读JUC下的类时会发现一个通用的模式：**volatile的共享变量，CAS原子更新实现线程同步，二者搭配来实现线程之间的通信。**很多操作都是**先读volatile变量此时的最新值，赋给局部变量，然后一顿操作，最后CAS进行同步，若过程中共享变量被其它线程更改则会导致CAS失败，重新尝试。**
 
