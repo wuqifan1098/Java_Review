@@ -53,6 +53,12 @@ public class HelloWorldApp{
 
   ApplicationContext会**利用Java反射机制自动识别**出配置文件中定义的BeanPostProcessor、 InstantiationAwareBeanPostProcesso 和BeanFactoryPostProcessor**后置器**，并**自动将它们注册到应用上**下文中。而BeanFactory需要在代码中通过**手工调用**`addBeanPostProcessor()`方法进行注册
 
+## 4.IOC底层，是什么容器实现的
+
+**IoC容器注册这些BeanDefinition的过程**。在IoC容器内部**将BeanDefinition注入到一个concurrentHashMap中去**，IoC容器就是通过这个HashMap来持有这些BeanDefinition数据的。
+
+http://www.imooc.com/article/details/id/291784
+
 # 引言
 
 先看下最基本的启动 Spring 容器的例子：

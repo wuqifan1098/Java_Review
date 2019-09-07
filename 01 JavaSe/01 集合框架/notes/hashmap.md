@@ -230,6 +230,19 @@ HashMap中定位到桶的位置，根据**Key的hash值与数组的长度取模*
 
 1.8 高16位和低16位异或，只做一次16位右移 异或
 
+## 24.hashmap时间复杂度，最坏的情况时间复杂度，使用红黑树之后的时间复杂度？（快手）
+
+- 查询的时间复杂度 O(1)
+- 最坏的情况的时间复杂度 O(N)
+- 红黑树 均为O（lgn）
+
+## 25. hashmap扩容是否安全（有赞）
+
+https://www.cnblogs.com/qiumingcheng/p/5259892.html
+
+https://www.cnblogs.com/lfs2640666960/p/9621461.html
+
+
 # 1.底层数据结构分析
 
 ## JDK1.8之前

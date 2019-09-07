@@ -133,11 +133,15 @@ FactoryBean也是接口，为IOC容器中Bean的实现提供了更加灵活的�
 
 
 
-## 6. bean的初始化和销毁几种方式
+## 6. bean的初始化和销毁几种方式（有赞）
 
-- init-method和destroy-method 通过属性指定[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后 /销毁之前调用的操作方法
-- InitializingBean 和DisposableBean  实现接口来定制[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后/销毁之前的操作方法
-- @PostConstruct或@PreDestroy 在指定方法上加上注解来制定方法是在[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后还是销毁之前调用。
+- init-method和destroy-method 通过**属性指定**[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后 /销毁之前调用的操作方法
+- InitializingBean 和DisposableBean  **实现接口**来定制[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后/销毁之前的操作方法
+- @PostConstruct或@PreDestroy 在指定方法上**加上注解来**制定方法是在[初始化](https://www.baidu.com/s?wd=初始化&tn=SE_PcZhidaonwhc_ngpagmjz&rsv_dl=gh_pc_zhidao)之后还是销毁之前调用。
+
+https://blog.csdn.net/alex_xfboy/article/details/51211054
+
+https://www.jianshu.com/p/34692cdf7d5f
 
 # 含义 #
 
