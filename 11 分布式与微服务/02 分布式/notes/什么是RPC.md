@@ -3,23 +3,13 @@
 说起RPC，就不能不提到**分布式**，这个促使RPC诞生的领域。
 
 假设你有一个计算器接口，Calculator，以及它的实现类CalculatorImpl，那么在系统还是**单体应用**时，你要调用Calculator的add方法来执行一个加运算，直接new一个CalculatorImpl，然后调用add方法就行了，这其实就是非常普通的**本地函数调用**，因为在**同一个地址空间**，或者说在同一块内存，所以通过方法栈和参数栈就可以实现。
- 
-
 
 
 ![img](https:////upload-images.jianshu.io/upload_images/7143349-443a8cbcf6136ef5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/540/format/webp)
 
-
-
-
-
 现在，基于高性能和高可靠等因素的考虑，你决定将系统改造为分布式应用，将很多可以共享的功能都单独拎出来，比如上面说到的计算器，你单独把它放到一个服务里头，让别的服务去调用它。
 
-
-
 ![img](https:////upload-images.jianshu.io/upload_images/7143349-9b1fbd80b8db018b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/901/format/webp)
-
-
 
 这下问题来了，服务A里头并没有CalculatorImpl这个类，那它要怎样调用服务B的CalculatorImpl的add方法呢？
 
@@ -53,11 +43,7 @@ calculator.add(1,2);
 
 不管你用何种协议进行数据传输，**一个完整的RPC过程，都可以用下面这张图来描述**：
 
-
-
 ![img](https:////upload-images.jianshu.io/upload_images/7143349-9e00bb104b9e3867.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/263/format/webp)
-
-
 
 以左边的Client端为例，Application就是rpc的调用方，Client Stub就是我们上面说到的代理对象，也就是那个看起来像是Calculator的实现类，其实内部是通过rpc方式来进行远程调用的代理对象，至于Client Run-time Library，则是实现远程调用的工具包，比如jdk的Socket，最后通过底层网络实现实现数据的传输。
 

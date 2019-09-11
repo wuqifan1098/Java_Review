@@ -18,7 +18,7 @@
    - @Befoe：切入点的逻辑(Advice)
    - execution…:切入点语法 
 
-xml配置aop
+
 
 ## 2. 什么是AOP（华数）
 
@@ -30,7 +30,7 @@ aop就是面向切面的编程。比如说你每做一次对数据库操作，�
 
 ## 3. CGLib实现（涂鸦智能）
 
-通过“继承”可以继承父类所有的公开方法，然后可以重写这些方法，在重写时对这些方法增强，这就是cglib的思想。
+通过“**继承”可以继承父类所有的公开方法，然后可以重写这些方法**，在重写时对这些方法增强，这就是cglib的思想。
 
 https://www.cnblogs.com/xrq730/p/6661692.html
 
@@ -46,9 +46,9 @@ https://www.cnblogs.com/xrq730/p/6661692.html
 
 - `After` 在方法完成后调用通知，无论方法是否执行成功
 
-- `After-returning` 在方法成功执行之后调用通知
+- `After-returning` 在方法**成功执行之后调用通知**
 
-- `After-throwing` 在方法抛出异常后调用通知
+- `After-throwing` 在方法**抛出异常后调用通知**
 
 - `Around` 通知了好、包含了被通知的方法，在被通知的方法调用之前后调用之后执行自定义的行为
 
@@ -82,7 +82,57 @@ https://www.cnblogs.com/xrq730/p/6661692.html
 
 链接：https://juejin.im/post/5aa7818af265da23844040c6
 
-### 特点
+```java
+@Aspect
+@Component // for auto scan
+//@Order(2)
+public class LogInterceptor {
+	@Pointcut("execution(public * net.aazj.service..*.getUser(..))")
+	public void myMethod(){};
+	@Before("myMethod()")
+	public void before() {
+		System.out.println("method start");
+	}
+	@After("myMethod()")
+	public void after() {
+		System.out.println("method after");
+	}
+	@AfterReturning("execution(public * net.aazj.mapper..*.*(..))")
+	public void AfterReturning() {
+		System.out.println("method AfterReturning");
+	}
+	@AfterThrowing("execution(public * net.aazj.mapper..*.*(..))")
+//  @Around("execution(public * net.aazj.mapper..*.*(..))")
+	public void AfterThrowing() {
+		System.out.println("method AfterThrowing");
+	}
+	@Around("execution(public * net.aazj.mapper..*.*(..))")
+	public Object Around(ProceedingJoinPoint jp) throws Throwable {
+		System.out.println("method Around");
+		SourceLocation sl = jp.getSourceLocation();
+		Object ret = jp.proceed();
+		System.out.println(jp.getTarget());
+		return ret;
+	}
+	@Before("execution(public * net.aazj.service..*.getUser(..)) && args(userId,..)")
+	public void before3(int userId) {
+		System.out.println("userId-----" + userId);
+	}
+	@Before("myMethod()")
+	public void before2(JoinPoint jp) {
+		Object[] args = jp.getArgs();
+		System.out.println("userId11111: " + (Integer)args[0]);
+		System.out.println(jp.getTarget());
+		System.out.println(jp.getThis());
+		System.out.println(jp.getSignature());
+		System.out.println("method start");
+	}
+}
+```
+
+
+
+## 特点
 
 1、降低模块之间的耦合度
 
@@ -92,19 +142,15 @@ https://www.cnblogs.com/xrq730/p/6661692.html
 
 # 实现
 
-##   一：代理模式（静态代理）
+##   代理模式（静态代理）
 
-​          代理模式是常用设计模式的一种，我们在软件设计时常用的代理一般是指静态代理，也就是在代码中显式指定的代理。
-
-​          静态代理由 业务实现类、业务代理类 两部分组成。业务实现类 负责实现主要的业务方法，业务代理类负责对调用的业务方法作拦截、过滤、预处理，主要是在方法中首先进行预处理动作，然后调用业务实现类的方法，还可以规定调用后的操作。我们在需要调用业务时，不是直接通过业务实现类来调用的，而是通过业务代理类的同名方法来调用被代理类处理过的业务方法。
+​          静态代理由 **业务实现类、业务代理类** 两部分组成。业务实现类 负责实现主要的业务方法，业务代理类负责对调用的业务方法作**拦截、过滤、预处理**，主要是在方法中首先进行预处理动作，然后调用业务实现类的方法，还可以规定调用后的操作。我们在需要调用业务时，不是直接通过业务实现类来调用的，而是通过**业务代理类的同名方法来调用被代理类处理过的业务方法。**
 
 ​          静态代理的实现：
 
 ​          1：首先定义一个接口，说明业务逻辑。          
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-```
+```java
     package net.battier.dao;      
     /** 
      * 定义一个账户接口 
@@ -120,11 +166,7 @@ https://www.cnblogs.com/xrq730/p/6661692.html
     }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​           2：然后，定义业务实现类，实现业务逻辑接口
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 import net.battier.dao.Count;    
@@ -151,11 +193,7 @@ public class CountImpl implements Count {
 }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-​       3：定义业务代理类：通过组合，在代理类中创建一个业务实现类对象来调用具体的业务方法；通过实现业务逻辑接口，来统一业务方法；在代理类中实现业务逻辑接口中的方法时，进行预处理操作、通过业务实现类对象调用真正的业务方法、进行调用后操作的定义。
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+​       3：定义业务代理类：通过组合，在代理类中创建一个**业务实现类对象来调用具体的业务方法**；通过实现业务逻辑接口，来统一业务方法；在代理类中实现业务逻辑接口中的方法时，进行预处理操作、通过业务实现类对象调用真正的业务方法、进行调用后操作的定义。
 
 ```java
 public class CountProxy implements Count {  
@@ -190,11 +228,7 @@ public class CountProxy implements Count {
 }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-​       4：在使用时，首先创建业务实现类对象，然后把业务实现类对象作构造参数创建一个代理类对象，最后通过代理类对象进行业务方法的调用。
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+​       4：在使用时，首先创建业务实现类对象，然后把**业务实现类对象作构造参数创建一个代理类对象**，最后通过代理类对象进行业务方法的调用。
 
 ```java
  public static void main(String[] args) {  
@@ -206,15 +240,13 @@ public class CountProxy implements Count {
     }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​       静态代理的缺点很明显：**一个代理类只能对一个业务接口的实现类进行包装，如果有多个业务接口的话就要定义很多实现类和代理类才行。**而且，如果代理类对业务方法的预处理、调用后操作都是一样的（比如：调用前输出提示、调用后自动关闭连接），则多个代理类就会有很多重复代码。这时我们可以定义这样一个代理类，它能代理所有实现类的方法调用：根据传进来的业务实现类和方法名进行具体调用。——那就是动态代理。
 
-​    
+  
 
-##     二：动态代理的第一种实现——JDK动态代理
+##     动态代理的第一种实现——JDK动态代理
 
-​    **JDK动态代理所用到的代理类在程序调用到代理类对象时才由JVM真正创建，JVM根据传进来的 业务实现类对象 以及 方法名 ，动态地创建了一个代理类的class文件并被字节码引擎执行，然后通过该代理类对象进行方法调用。**我们需要做的，只需指定代理类的预处理、调用后操作即可。
+​    JDK动态代理所用到的代理类在程序调用到代理类对象时才由JVM真正创建，JVM根据传进来的 业务实现类对象 以及 方法名 ，**动态地创建了一个代理类的class文件并被字节码引擎执行，然后通过该代理类对象进行方法调用**。我们需要做的，只需指定代理类的预处理、调用后操作即可。
 
 ​       1：首先，定义业务逻辑接口
 
@@ -226,8 +258,6 @@ public interface BookFacade {
 
 ​       2：然后，实现业务逻辑接口创建业务实现类
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 public class BookFacadeImpl implements BookFacade {   
     @Override  
@@ -238,11 +268,7 @@ public class BookFacadeImpl implements BookFacade {
 } 
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-​       3：最后，实现 调用管理接口InvocationHandler  创建动态代理类
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+​       3：最后，实现 **调用管理接口InvocationHandle**r  创建动态代理类
 
 ```java
 public class BookFacadeProxy implements InvocationHandler {  
@@ -273,11 +299,7 @@ public class BookFacadeProxy implements InvocationHandler {
 }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​       4：在使用时，首先**创建一个业务实现类对象和一个代理类对象，然后定义接口引用**（这里使用向上转型）并用代理对象.bind(业务实现类对象)的返回值进行赋值。最后**通过接口引用调用业务方法即可**。（接口引用真正指向的是一个绑定了业务类的代理类对象，所以通过接口方法名调用的是被代理的方法们）
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 public static void main(String[] args) {  
@@ -288,11 +310,9 @@ public static void main(String[] args) {
     }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​        JDK动态代理的代理对象在创建时，需要**使用业务实现类所实现的接口作为参数**（因为在后面代理方法时需要根据接口内的方法名进行调用）。如果业务实现类是没有实现接口而是直接定义业务方法的话，就无法使用JDK动态代理了。并且，如果业务实现类中新增了接口中没有的方法，这些方法是无法被代理的（因为无法被调用）。
 
-##    三：动态代理的第二种实现——CGlib
+##    动态代理的第二种实现——CGlib
 
 ​       **cglib是针对类来实现代理的，原理是对指定的业务类生成一个子类，并覆盖其中业务方法实现代理。因为采用的是继承，所以不能对final修饰的类进行代理。** 
 
@@ -308,8 +328,6 @@ public class BookFacadeImpl1 {
 
 ​       2：实现 MethodInterceptor方法代理接口，创建代理类
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ```java
 public class BookFacadeCglib implements MethodInterceptor {  
     private Object target;//业务类对象，供代理方法中进行真正的业务方法调用
@@ -322,11 +340,7 @@ public class BookFacadeCglib implements MethodInterceptor {
         //设置回调：对于代理类上所有方法的调用，都会调用CallBack，而Callback则需要实现intercept()方法进行拦        enhancer.setCallback(this);        // 创建动态代理类对象并返回         return enhancer.create();     }    // 实现回调方法     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {         System.out.println("预处理——————");        proxy.invokeSuper(obj, args); //调用业务类（父类中）的方法        System.out.println("调用后操作——————");        return null;     } 
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ​       3：**创建业务类和代理类对象，然后通过代理类对象.getInstance(业务类对象)  返回一个动态代理类对象**（它是业务类的子类，可以用业务类引用指向它）。**最后通过动态代理类对象进行方法调用**。
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```java
 public static void main(String[] args) {      
@@ -337,13 +351,9 @@ public static void main(String[] args) {
     }  
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+##     比较
 
- 
-
-​    四：比较
-
-​    静态代理是通过在代码中显式定义一个业务实现类一个代理，在代理类中对同名的业务方法进行包装，用户通过代理类调用被包装过的业务方法；
+​    静态代理是通过在代码中显式定义一个业务实现类一个代理，**在代理类中对同名的业务方法进行包装**，用户通过代理类调用被包装过的业务方法；
 
 ​    JDK动态代理是**通过接口中的方法名，在动态生成的代理类中调用业务实现类**的同名方法；
 

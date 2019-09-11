@@ -16,6 +16,8 @@ Segment 通过**继承 ReentrantLock 来进行加锁**，所以每次需要加�
 
 ## 4. 扩容
 
+**Java7**
+
 segment 数组不能扩容，扩容是 segment 数组**某个位置内部的数组 HashEntry<K,V>[] 进行扩容，扩容后，容量为原来的 2 倍。**
 
 首先，我们要回顾一下触发扩容的地方，put 的时候，如果判断该值的插入会导致该 segment 的元素个数超过阈值，那么先进行扩容，再插值，读者这个时候可以回去 put 方法看一眼。
@@ -24,17 +26,59 @@ segment 数组不能扩容，扩容是 segment 数组**某个位置内部的数�
 
 <https://www.javadoop.com/post/hashmap>
 
+**Java8**
+
+在JDK8里面，去掉了分段锁，将锁的级别控制在了更细粒度的table元素级别，也就是说只需要锁住这个链表的head节点，并不会影响其他的table元素的读写，好处在于并发的粒度更细，影响更小，从而并发效率更好，但不足之处在于并发扩容的时候，由于操作的table都是同一个，不像JDK7中分段控制，所以这里需要等扩容完之后，所有的读写操作才能进行，所以扩容的效率就成为了整个并发的一个瓶颈点。好在Doug lea大神对扩容做了优化，本来在一个线程扩容的时候，如果影响了其他线程的数据，那么其他的线程的读写操作都应该阻塞，但Doug lea说你们闲着也是闲着，不如来一起参与扩容任务，这样人多力量大，办完事你们该干啥干啥，别浪费时间，于是在JDK8的源码里面就引入了一个ForwardingNode类，在一个线程发起扩容的时候，就会改变sizeCtl这个值。
+
+扩容时候会判断这个值，如果超过阈值就要扩容，首先**根据运算得到需要遍历的次数i，然后利用tabAt方法获得i位置的元素f，初始化一个forwardNode实例fwd，如果f == null，则在table中的i位置放入fwd，否则采用头插法的方式把当前旧table数组的指定任务范围的数据给迁移到新的数组中，然后给旧table原位置赋值fwd**。直到遍历过所有的节点以后就完成了复制工作，把table指向nextTable，并更新sizeCtl为新数组大小的0.75倍 ，扩容完成。**在此期间如果其他线程的有读写操作都会判断head节点是否为forwardNode节点，如果是就帮助扩容。** 
+
+https://www.cnblogs.com/lfs2640666960/p/9621461.html
+
 ## 5.Java8为什么放弃分段锁
 
 加入**多个分段锁浪费内存空间**。
 
-生产环境中， map 在放入时竞争同一个锁的概率非常小，分段锁反而会造成更新等操作的长时间等待。
+生产环境中， map 在放入时**竞争同一个锁的概率非常小，分段锁反而会造成更新等操作的长时间等待**。
 
-为了提高 GC 的效率
+为了**提高 GC 的效率**
+
+实现降低锁的粒度
 
 ## 6. 为什么get不加锁
 
+在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的**hashmap;安全效率高的原因之一**。
 
+get操作全程不需要加锁是因为**Node的成员val是用volatile修饰的**和数组用volatile修饰没有关系。
+
+数组用volatile修饰主要是**保证在数组扩容的时候保证可见性**。
+
+https://www.cnblogs.com/keeya/p/9632958.html
+
+**get方法无需加锁，除非读到空的值才会加锁重读**。由于其中涉及到的**共享变量都使用volatile修饰**，volatile可以保证内存可见性，所以不会读取到过期数据。这是用**volatile替换锁的经典应用场景，不想HashTable需要加锁。**
+
+## 7. CAS 和 synchronized 用在 ConcurrentHashMap 的什么地方？(CVTE)
+
+大量应用来的CAS方法进行变量、属性的修改工作。  利用CAS进行无锁操作，可以大大提高性能。
+
+ConcurrentHashMap定义了三个原子操作，用于对指定位置的节点进行操作。正是这些原子操作保证了ConcurrentHashMap的线程安全。
+
+https://blog.csdn.net/u010647035/article/details/86375981
+
+## 8.为什么要使用CAS+Synchronized取代Segment+ReentrantLock
+
+Synchronized是将每一个Node对象作为了一个锁,这样做的好处是什么呢?将锁细化了,也就是说,除非两个线程同时操作一个Node,注意,是一个Node而不是一个Node链表哦,那么才会争抢同一把锁.
+
+如果使用ReentrantLock其实也可以将锁细化成这样的,只要让Node类继承ReentrantLock就行了,这样的话调用f.lock()就能做到和Synchronized(f)同样的效果,但为什么不这样做呢?
+
+请大家试想一下,锁已经被细化到这种程度了,那么出现并发争抢的可能性还高吗?还有就是,哪怕出现争抢了,只要线程可以在30到50次自旋里拿到锁,那么Synchronized就不会升级为重量级锁,而等待的线程也就不用被挂起,我们也就少了挂起和唤醒这个上下文切换的过程开销.
+
+但如果是ReentrantLock呢?它则只有在线程没有抢到锁,然后新建Node节点后再尝试一次而已,不会自旋,而是直接被挂起,这样一来,我们就很容易会多出线程上下文开销的代价.当然,你也可以使用tryLock(),但是这样又出现了一个问题,你怎么知道tryLock的时间呢?在时间范围里还好,假如超过了呢?
+
+所以,在锁被细化到如此程度上,使用Synchronized是最好的选择了.这里再补充一句,Synchronized和ReentrantLock他们的开销差距是在释放锁时唤醒线程的数量,Synchronized是唤醒锁池里所有的线程+刚好来访问的线程,而ReentrantLock则是当前线程后进来的第一个线程+刚好来访问的线程.
+
+如果是线程并发量不大的情况下,那么Synchronized因为自旋锁,偏向锁,轻量级锁的原因,不用将等待线程挂起,偏向锁甚至不用自旋,所以在这种情况下要比ReentrantLock高效
+
+https://www.cnblogs.com/yangfeiORfeiyang/p/9694383.html
 
 # 1.存储结构
 
@@ -94,7 +138,7 @@ ConcurrentHashMap 在执行 size 操作时**先尝试不加锁，如果连续两
 
 尝试次数使用 RETRIES_BEFORE_LOCK 定义，该值为 2，retries 初始值为 -1，因此尝试次数为 3。
 
-如果尝试的次数超过 3 次，就需要对每个 Segment 加锁。
+如果**尝试的次数超过 3 次，就需要对每个 Segment 加锁。**
 
 # 3.方法
 
@@ -194,7 +238,7 @@ Segment **继承自 ReentrantLock**，所以我们可以很方便的对每一个
 Segment<K,V> s = (Segment<K,V>)UNSAFE.getObjectVolatile(segments, u)
 ```
 
-对于写操作，**并不要求同时获取所有 Segment 的锁，因为那样相当于锁住了整个 Map**。它会先获取该 Key-Value 对所在的 Segment 的锁，获取成功后就可以像操作一个普通的 HashMap 一样操作该 Segment，并保证该Segment 的安全性。
+对于写操作，**并不要求同时获取所有 Segment 的锁，因为那样相当于锁住了整个 Map**。它会先获取**该 Key-Value 对所在的 Segment 的锁**，获取成功后就可以像操作一个普通的 HashMap 一样操作该 Segment，并保证该Segment 的安全性。
 
 它使用了**自旋锁**，如果 tryLock 获取锁失败，说明锁被其它线程占用，此时通过循环再次以 tryLock 的方式申请锁。如果在循环过程中该 Key 所对应的链表头被修改，则重置 retry 次数。如果 retry 次数超过一定值，则使用 lock 方法申请锁。
 
@@ -206,7 +250,7 @@ JDK1.8 的时候已经**摒弃了Segment的概念**，而是直接用 **Node 数
 
 数据结构跟HashMap1.8的结构类似，数组+链表/红黑二叉树。
 
-synchronized只锁定当前链表或红黑二叉树的首节点，这样只要hash不冲突，就不会产生并发，效率又提升N倍。
+synchronized只锁定**当前链表或红黑二叉树的首节点**，这样只要hash不冲突，就不会产生并发，效率又提升N倍。
 
  ***在Java 7中***，ConcurrentHashMap把内部细分成了若干个小的HashMap，称之为***段（Segment）***，默认被分为16个段。**对于一个写操作而言，会先根据hash code进行寻址，得出该Entry应被存放在哪一个Segment，然后只要对该Segment加锁即可。**理想情况下，一个默认的ConcurrentHashMap可以同时接受16个线程进行写操作（如果都是对不同Segment进行操作的话）。分段锁对于size()这样的全局操作来说就没有任何作用了，想要得出**Entry的数量就需要遍历所有Segment，获得所有的锁，然后再统计总数。**事实上，ConcurrentHashMap会**先试图使用无锁的方式**统计总数，这个尝试会进行3次，如果在**相邻的2次计算中获得的Segment的modCount次数一致**，代表这两次计算过程中都没有发生过修改操作，那么就可以当做最终结果返回，否则，就要获得所有Segment的锁，重新计算size。
 
@@ -221,7 +265,7 @@ synchronized只锁定当前链表或红黑二叉树的首节点，这样只要ha
 
 - TreeBin 用于包装红黑树结构的结点类型 ，它继承了Node，代表它也是个节点，hash值为-2
 
-- ForwardingNode 扩容时存放的结点类型，并发扩容的实现关键之一 ，是一个标记，代表此处已完成扩容，hash值为-1。
+- ForwardingNode **扩容时存放的结点类型**，并发扩容的实现关键之一 ，是一个标记，代表此处已完成扩容，hash值为-1。
 
 - Node 普通结点类型
 
@@ -231,7 +275,7 @@ volatile的读写和CAS可以实现线程之间的通信，整合到一起就实
 
 ## **Node**
 
-Node是最核心的内部类，**它包装了key-value键值对**，所有插入ConcurrentHashMap的数据都包装在这里面。它与HashMap中的定义很相似，但是但是有一些差别**它对value和next属性设置了volatile同步锁**，它不允许调用setValue方法直接改变Node的value域，它增加了find方法辅助map.get()方法。
+Node是最核心的内部类，**它包装了key-value键值对**，所有插入ConcurrentHashMap的数据都包装在这里面。它与HashMap中的定义很相似，但是有一些差别**它对value和next属性设置了volatile同步锁**，它不允许调用setValue方法直接改变Node的value域，它增加了find方法辅助map.get()方法。
 
 ```java
    static class Node<K,V> implements Map.Entry<K,V> {  
@@ -305,14 +349,25 @@ ForwardingNode作用在扩容期间，hash值为MOVED 值为-1，当table[ i ] �
 
 ## **nextTable**
 
-扩容时新生成的数组，其大小为原数组的两倍
+扩容时**新生成的数组**，其大小为原数组的两倍
 
 ## **sizeCtl**
 
--1：正在初始化
--（1+正在进行扩容操作的线程数）：正在进行扩容操作
-0：默认值，表示table还未进行初始化
-正数：表示下一次进行扩容的大小，这一点类似于扩容阈值的概念。还后面可以看到，它的值始终是当前ConcurrentHashMap容量的0.75倍，这与loadfactor是对应的。
+**多线程之间，以volatile的方式读取sizeCtl属性，来判断ConcurrentHashMap当前所处的状态。通过cas设置sizeCtl属性，告知其他线程ConcurrentHashMap的状态变更**。
+
+不同状态，sizeCtl所代表的含义也有所不同。
+
+- 未初始化：
+  - sizeCtl=0：表示没有指定初始容量。
+  - sizeCtl>0：表示初始容量。
+
+- 初始化中：
+  - sizeCtl=-1,标记作用，**告知其他线程，正在初始化**
+- 正常状态：
+  - sizeCtl=0.75n ,扩容阈值
+- 扩容中:
+  - sizeCtl < 0 : 表示有其他线程正在执行扩容
+  - sizeCtl = (resizeStamp(n) << RESIZE_STAMP_SHIFT) + 2 :表示此时只有一个线程在执行扩容
 
 ```java
  /** 
@@ -357,8 +412,8 @@ ForwardingNode作用在扩容期间，hash值为MOVED 值为-1，当table[ i ] �
 
 ## put
 
-如果一个或多个线程正在对ConcurrentHashMap进行扩容操作，当前线程也要进入扩容的操作中。这个扩容的操作之所以能被检测到，是因为transfer方法中在空结点上插入forward节点，如果检测到需要插入的位置被forward节点占有，就帮助进行扩容；
- 如果检测到要插入的节点是非空且不是forward节点，就对这个节点加锁，这样就保证了线程安全。尽管这个有一些影响效率，但是还是会比HashTable的synchronized要好得多。
+如果一个或多个线程正在对ConcurrentHashMap进行扩容操作，当前线程也要进入扩容的操作中。这个扩容的操作之所以能被检测到，是因为**transfer方法中在空结点上插入forward节点，如果检测到需要插入的位置被forward节点占有，就帮助进行扩容；**
+ 如果检测到**要插入的节点是非空且不是forward节点，就对这个节点加锁，这样就保证了线程安全**。尽管这个有一些影响效率，但是还是会比HashTable的synchronized要好得多。
 
 putVal(K key, V value, boolean onlyIfAbsent)方法干的工作如下：
  1、检查key/value是否为空，如果为空，则抛异常，否则进行2
@@ -369,15 +424,15 @@ putVal(K key, V value, boolean onlyIfAbsent)方法干的工作如下：
  1）如果table[i]==null(即该位置的节点为空，没有发生碰撞)，
  则利用CAS操作直接存储在该位置，如果CAS操作成功则退出死循环。
  2）如果table[i]!=null(即该位置已经有其它节点，发生碰撞)，碰撞处理也有两种情况
- 2.1）检查table[i]的节点的hash是否等于MOVED，如果等于，则检测到正在扩容，则帮助其扩容
- 2.2）说明table[i]的节点的hash值不等于MOVED，如果table[i]为链表节点，则将此节点插入链表中即可
+ 2.1）检查table[i]的节点的**hash是否等于MOVED**，如果等于，则**检测到正在扩容，则帮助其扩容**
+ 2.2）说明table[i]的节点的**hash值不等于MOVED**，如果table[i]为链表节点，则将此节点插入链表中即可
  3 )     如果table[i]为树节点，则将此节点插入树中即可。插入成功后，进行 5
  5、如果table[i]的节点是链表节点，则检查table的第i个位置的链表是否需要转化为数，如果需要则调用treeifyBin函数进行转化
 
 1、第一步根据给定的key的hash值找到其在table中的位置index。
  2、找到位置index后，存储进行就好了。
 
-只是这里的存储有三种情况罢了，第一种：table[index]中没有任何其他元素，即此元素没有发生碰撞，这种情况直接存储就好了哈。第二种，table[i]存储的是一个链表，如果链表不存在key则直接加入到链表尾部即可，如果存在key则更新其对应的value。第三种，table[i]存储的是一个树，则按照树添加节点的方法添加就好。
+只是这里的存储有三种情况罢了，第一种：table[index]中没有任何其他元素，即此元素没有发生碰撞，这种情况直接存储就好了哈。第二种，table[i]存储的是一个链表，如果链表不存在key则**直接加入到链表尾部即可**，如果存在key则更新其对应的value。第三种，table[i]存储的是一个树，则按照树添加节点的方法添加就好。
 
 ```java
 public V put(K key, V value) {  
@@ -471,7 +526,23 @@ public V put(K key, V value) {
  2、initTable 作用是初始化table数组
  3、treeifyBin 作用是将table[i]的链表转化为树
 
-### Unsafe与CAS
+### 总结
+
+- 根据 key 计算出 hashcode 。
+
+- 判断是否需要进行初始化。
+
+- `f` 即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。
+
+- 如果当前位置的 `hashcode == MOVED == -1`,则需要进行扩容。
+
+- 如果都不满足，则利用 synchronized 锁写入数据。
+
+- 如果数量大于 `TREEIFY_THRESHOLD` 则要转换为红黑树。
+
+  作者：crossoverJie链接：https://juejin.im/post/5b551e8df265da0f84562403
+
+## Unsafe与CAS
 
 在ConcurrentHashMap中，随处可以看到U, 大量使用了U.compareAndSwapXXX的方法，这个方法是**利用一个CAS算法实现无锁化的修改值的操作，他可以大大降低锁代理的性能消耗。**这个算法的基本思想就是不断地去比较当前内存中的变量值与你指定的一个变量值是否相等，如果相等，则接受你指定的修改的值，否则拒绝你的操作。因为当前线程中的值已经不是最新的值，你的修改很可能会覆盖掉其他线程修改的结果。这一点与乐观锁，SVN的思想是比较类似的。
 
@@ -496,14 +567,27 @@ ConcurrentHashMap定义了三个原子操作，用于对指定位置的节点进
    } 
 ```
 
-### 扩容
+## 扩容
 
-[http://www.importnew.com/23907.html](https://links.jianshu.com/go?to=http%3A%2F%2Fwww.importnew.com%2F23907.html)
- 整个扩容操作分为两个部分
- 第一部分是构建一个nextTable,它的容量是原来的两倍，这个操作是单线程完成的。这个单线程的保证是通过RESIZE_STAMP_SHIFT这个常量经过一次运算来保证的，这个地方在后面会有提到；
- 第二个部分就是将原来table中的元素复制到nextTable中，这里允许多线程进行操作。
+1. 通过计算 CPU 核心数和 Map 数组的长度得到每个线程（CPU）要帮助处理多少个桶，并且这里每个线程处理都是平均的。默认每个线程处理 16 个桶。因此，如果长度是 16 的时候，扩容的时候只会有一个线程扩容。
 
-原理：多线程遍历节点，处理了一个节点，就把对应点的值set为forward，另一个线程看到ForwardingNode节点，就向后遍历。
+2. 初始化临时变量 nextTable。将其在原有基础上扩容两倍。
+
+3. 死循环开始转移。多线程并发转移就是在这个死循环中，根据一个 finishing 变量来判断，该变量为 true 表示扩容结束，否则继续扩容。
+
+   3.1 进入一个 while 循环，分配数组中一个桶的区间给线程，默认是 16. 从大到小进行分配。当拿到分配值后，进行 i-- 递减。这个 i 就是数组下标。（`其中有一个 bound 参数，这个参数指的是该线程此次可以处理的区间的最小下标，超过这个下标，就需要重新领取区间或者结束扩容，还有一个 advance 参数，该参数指的是是否继续递减转移下一个桶，如果为 true，表示可以继续向后推进，反之，说明还没有处理好当前桶，不能推进`) 3.2 出 while 循环，进 if 判断，判断扩容是否结束，如果扩容结束，清空临死变量，更新 table 变量，更新库容阈值。如果没完成，但已经无法领取区间（没了），该线程退出该方法，并将 sizeCtl 减一，表示扩容的线程少一个了。如果减完这个数以后，sizeCtl 回归了初始状态，表示没有线程再扩容了，该方法所有的线程扩容结束了。（`这里主要是判断扩容任务是否结束，如果结束了就让线程退出该方法，并更新相关变量`）。然后检查所有的桶，防止遗漏。 3.3 如果没有完成任务，且 i 对应的槽位是空，尝试 CAS 插入占位符，让 putVal 方法的线程感知。 3.4 如果 i 对应的槽位不是空，且有了占位符，那么该线程跳过这个槽位，处理下一个槽位。 3.5 如果以上都是不是，说明这个槽位有一个实际的值。开始同步处理这个桶。 3.6 到这里，都还没有对桶内数据进行转移，只是计算了下标和处理区间，然后一些完成状态判断。同时，如果对应下标内没有数据或已经被占位了，就跳过了。
+
+4. 处理每个桶的行为都是同步的。防止 putVal 的时候向链表插入数据。 4.1 如果这个桶是链表，那么就将这个链表根据 length 取于拆成两份，取于结果是 0 的放在新表的低位，取于结果是 1 放在新表的高位。 4.2 如果这个桶是红黑数，那么也拆成 2 份，方式和链表的方式一样，然后，判断拆分过的树的节点数量，如果数量小于等于 6，改造成链表。反之，继续使用红黑树结构。 4.3 到这里，就完成了一个桶从旧表转移到新表的过程。
+
+好，以上，就是 transfer 方法的总体逻辑。还是挺复杂的。再进行精简，分成 3 步骤：
+
+1. **计算每个线程可以处理的桶区间**。默认 16.
+2. **初始化临时变量 nextTable**，扩容 2 倍。
+3. 死循环，计算下标。完成总体判断。
+4. 1 如果桶内有数据，同步转移数据。通常会像链表拆成 2 份。
+
+
+作者：莫那·鲁道链接：https://juejin.im/post/5b00160151882565bd2582e0
 
 https://www.jianshu.com/p/01098075b2bf
 
@@ -521,9 +605,9 @@ jdk7中ConcurrentHashmap中，当长度过长碰撞会很频繁，链表的增�
 
 1. 不采用segment而采用node，**锁住node来实现减小锁粒度**。
 
-1. 设计了MOVED状态 当resize的中过程中 线程2还在put数据，线程2会帮助resize。
+1. 设计了**MOVED状态 当resize的中过程中 线程2还在put数据，线程2会帮助resize**。
 
-1. 使用3个CAS操作来确保node的一些操作的原子性，这种方式代替了锁。
+1. 使用**3个CAS操作来确保node的一些操作的原子性**，这种方式代替了锁。
 
 1. sizeCtl的不同值来代表不同含义，起到了控制的作用。
 

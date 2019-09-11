@@ -16,13 +16,11 @@ IOC就是控制反转，一种思想。**借助Spring容器实现具有依赖关
 
 ## 2. IOC的实现（华数）
 
-DI 就是**将spring管理的对象通过 AutoWrite 注解注入到我们需要的地方**.注入过来的对象是由spring管理的.
+a. 加载配置文件，解析成 BeanDefinition 放在 Map 里。
 
-**注入方式：**
+b. 调用 getBean 的时候，**从 BeanDefinition 所属的 Map 里，拿出 Class 对象进行实例化**，同时，如果有依赖关系，将递归调用 getBean 方法 —— 完成依赖注入。
 
-- 接口注入
-- setter
-- 构造器注入
+
 
 ## 3. BeanFactory和ApplicationContext的区别
 

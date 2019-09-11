@@ -92,7 +92,7 @@ sinterstore key1 key2 key3     将交集存在key1内
 
 # 数据结构
 
-## [字典](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=字典)
+## 字典
 
 dictht 是一个散列表结构，使用拉链法解决哈希冲突。
 
@@ -193,7 +193,7 @@ int dictRehash(dict *d, int n) {
 }Copy to clipboardErrorCopied
 ```
 
-## [跳跃表](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=跳跃表)
+## 跳跃表
 
 是有序集合的底层实现之一。
 
@@ -201,13 +201,9 @@ int dictRehash(dict *d, int n) {
 
 ![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/beba612e-dc5b-4fc2-869d-0b23408ac90a.png)
 
-
-
 在查找时，从上层指针开始查找，找到对应的区间之后再到下一层去查找。下图演示了查找 22 的过程。
 
 ![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/0ea37ee2-c224-4c79-b895-e131c6805c40.png)
-
-
 
 与红黑树等平衡树相比，跳跃表具有以下优点：
 
@@ -229,19 +225,19 @@ Redis 最简单的事务实现方式是**使用 MULTI 和 EXEC 命令将事务�
 
 一个从服务器只能有一个主服务器，并且不支持主主复制。
 
-## [连接过程](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=连接过程)
+## 连接过程
 
 1. 主服务器**创建快照文件，发送给从服务器，并在发送期间使用缓冲区记录执行的写命令**。快照文件发送完毕之后，开始向从服务器发送存储在缓冲区中的写命令；
 2. 从服务器丢弃所有旧数据，载入主服务器发来的快照文件，之后从服务器开始接受主服务器发来的写命令；
 3. 主服务器每执行一次写命令，就向从服务器发送相同的写命令。
 
-## [主从链](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=主从链)
+## 主从链
 
 随着负载不断上升，主服务器可能无法很快地更新所有从服务器，或者重新连接和重新同步从服务器将导致系统超载。为了解决这个问题，可以创建一个中间层来分担主服务器的复制工作。中间层的服务器是最上层服务器的从服务器，又是最下层服务器的主服务器。
 
 ![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/395a9e83-b1a1-4a1d-b170-d081e7bb5bab.png)
 
-# [Sentinel](https://cyc2018.github.io/CS-Notes/#/notes/Redis?id=十二、sentinel)
+# Sentinel
 
 Sentinel（哨兵）可以**监听集群中的服务器**，并在主服务器进入下线状态时，自动从从服务器中选举出新的主服务器。
 

@@ -6,6 +6,45 @@ LinkedHashMap 通过继承 hashMap 中的 Entry<K,V>,并添加两个属性 Entry
 
 重写了Map接口的*V get(Object key)*方法，该方法分两个步骤：1. 调用父类HashMap的*getNode(hash(key), key)*方法，获取value；2. 如果accessOrder为true（默认为false），那么移动所访问的元素到表尾，并修改head和tail的值。
 
+## 2. 实现LRU
+
+```java
+class LRUCache {
+
+        private int cap;
+	private Map<Integer, Integer> map = new LinkedHashMap<>();  // 保持插入顺序
+
+	public LRUCache(int capacity) {
+		this.cap = capacity;
+	}
+
+	public int get(int key) {
+		if (map.keySet().contains(key)) {
+			int value = map.get(key);
+			map.remove(key);
+                       // 保证每次查询后，都在末尾
+			map.put(key, value);
+			return value;
+		}
+		return -1;
+	}
+
+	public void put(int key, int value) {
+		if (map.keySet().contains(key)) {
+			map.remove(key);
+		} else if (map.size() == cap) {
+			Iterator<Map.E***y<Integer, Integer>> iterator = map.e***ySet().iterator();
+			iterator.next();
+			iterator.remove();
+
+			// int firstKey = map.e***ySet().iterator().next().getValue();
+			// map.remove(firstKey);
+		}
+		map.put(key, value);
+	}
+}
+```
+
 ## LinkedHashMap
 
 ### 存储结构

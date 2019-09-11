@@ -1,6 +1,14 @@
-## MySQL的事务日志
+# 面试题
 
-### **undo log**
+## 1. 事务是如何通过日志来实现的，说得越深入越好
+
+事务日志是通过**redo和innodb的存储引擎日志缓冲（Innodb log buffer）来实现的**，当开始一个事务的时候，会记录该事务的lsn(log sequence number)号; 当事务执行时，会往InnoDB存储引擎的日志的日志缓存里面插入事务日志；当事务提交时，必须将存储引擎的日志缓冲写入磁盘（通过innodb_flush_log_at_trx_commit来控制），也就是写数据前，需要先写日志。这种方式称为“预写日志方式”
+
+作者：Java_老男孩链接：https://juejin.im/post/5cb6c4ef51882532b70e6ff0
+
+# MySQL的事务日志
+
+## **undo log**
 
 在说明原子性原理之前，首先介绍一下MySQL的事务日志。MySQL的日志有很多种，如二进制日志、错误日志、查询日志、慢查询日志等，此外InnoDB存储引擎还提供了两种事务日志：redo log(重做日志)和undo log(回滚日志)。其中redo log用于保证事务持久性；undo log则是事务原子性和隔离性实现的基础。
 
@@ -10,7 +18,7 @@ undo log属于逻辑日志，它记录的是sql执行相关的信息。当发生
 
 以update操作为例：当事务执行update时，其生成的undo log中会包含被修改行的主键(以便知道修改了哪些行)、修改了哪些列、这些列在修改前后的值等信息，回滚时便可以使用这些信息将数据还原到update之前的状态。
 
-### **redo log**
+## **redo log**
 
 redo log和undo log都属于InnoDB的事务日志。下面先聊一下redo log存在的背景。
 
@@ -20,7 +28,7 @@ Buffer Pool的使用大大提高了读写数据的效率，但是也带了新的
 
 于是，redo log被引入来解决这个问题：当数据修改时，除了修改Buffer Pool中的数据，还会在redo log记录这次操作；当事务提交时，会调用fsync接口对redo log进行刷盘。如果MySQL宕机，重启时可以读取redo log中的数据，对数据库进行恢复。redo log采用的是WAL（Write-ahead logging，预写式日志），所有修改先写入日志，再更新到Buffer Pool，保证了数据不会因MySQL宕机而丢失，从而满足了持久性要求。
 
-### **redo log与binlog**
+## **redo log与binlog**
 
 **我们知道，在MySQL中还存在binlog(二进制日志)也可以记录写操作并用于数据的恢复，但二者是有着根本的不同的：**
 

@@ -17,7 +17,7 @@ lsof -i | grep pid
 lsof  -i:port
 ```
 
-## 3. Linux环境下上线一个服务,如果CPU占用太满了,怎么排查。
+## 3. Linux环境下上线一个服务,如果CPU占用太满了,怎么排查。（美团）
 
 - **top**
 

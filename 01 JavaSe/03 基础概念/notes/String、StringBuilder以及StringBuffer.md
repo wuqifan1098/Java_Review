@@ -65,7 +65,7 @@ StringBuilder：
 
 ## 5. String s = new String("abc");创建了多少个String实例
 
-两个对象。第一个对象是”abc”字符串存储在常量池中，第二个对象在JAVA Heap中的 String 对象。
+两个对象。第一个对象是**”abc”字符串存储在常量池中**，第二个对象在**JAVA Heap中的 String 对象。**
 
 ### 直接赋值
 

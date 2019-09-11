@@ -32,7 +32,7 @@ https://segmentfault.com/a/1190000015854646
 
 https://www.cnblogs.com/Anker/p/3265058.html
 
-# [一、I/O 模型](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=一、io-模型)
+# I/O 模型
 
 一个输入操作通常包括两个阶段：
 
@@ -49,7 +49,7 @@ Unix 有五种 I/O 模型：
 - 信号驱动式 I/O（SIGIO）
 - 异步 I/O（AIO）
 
-## [阻塞式 I/O](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=阻塞式-io)
+## 阻塞式 I/O
 
 应用进程被阻塞，直到数据从内核缓冲区复制到应用进程缓冲区中才返回。
 
@@ -63,7 +63,7 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *
 
 ![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/1492928416812_4.png)
 
-## [非阻塞式 I/O](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=非阻塞式-io)
+## 非阻塞式 I/O
 
 应用进程执行系统调用之后，内核返回一个错误码。应用进程可以继续执行，但是需要不断的执行系统调用来获知 I/O 是否完成，这种方式称为轮询（polling）。
 
@@ -108,11 +108,11 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *
 
 ![img](https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/1492928105791_3.png)
 
-# [二、I/O 复用](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=二、io-复用)
+# I/O 复用
 
 select/poll/epoll 都是 I/O 多路复用的具体实现，select 出现的最早，之后是 poll，再是 epoll。
 
-## [select](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=select)
+## select
 
 ```c
 int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);Copy to clipboardErrorCopied
@@ -164,13 +164,13 @@ else
 
     if ( FD_ISSET( sock2, &fd_out ) )
         // output event on sock2
-}Copy to clipboardErrorCopied
+}
 ```
 
-## [poll](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=poll)
+## poll
 
 ```c
-int poll(struct pollfd *fds, unsigned int nfds, int timeout);Copy to clipboardErrorCopied
+int poll(struct pollfd *fds, unsigned int nfds, int timeout);
 ```
 
 pollfd 使用链表实现。
@@ -206,12 +206,12 @@ else
     if ( fds[1].revents & POLLOUT )
         fds[1].revents = 0;
         // output event on sock2
-}Copy to clipboardErrorCopied
+}
 ```
 
-## [比较](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=比较)
+## 比较
 
-### [1. 功能](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_1-功能)
+### 1. 功能
 
 select 和 poll 的功能基本相同，不过在一些实现细节上有所不同。
 
@@ -220,23 +220,23 @@ select 和 poll 的功能基本相同，不过在一些实现细节上有所不�
 - poll 提供了更多的事件类型，并且对描述符的重复利用上比 select 高。
 - 如果一个线程对某个描述符调用了 select 或者 poll，另一个线程关闭了该描述符，会导致调用结果不确定。
 
-### [2. 速度](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_2-速度)
+### 2. 速度
 
 select 和 poll 速度都比较慢。
 
 - select 和 poll 每次调用都需要将**全部描述符从应用进程缓冲区复制到内核缓冲区。**
 - select 和 poll 的返回结果中没有声明哪些描述符已经准备好，所以如果返回值大于 0 时，应**用进程都需要使用轮询的方式来找到 I/O 完成的描述符。**
 
-### [3. 可移植性](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_3-可移植性)
+### 3. 可移植性
 
 几乎所有的系统都支持 select，但是只有比较新的系统支持 poll。
 
-## [epoll](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=epoll)
+## epoll
 
 ```c
 int epoll_create(int size);
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
-int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);Copy to clipboardErrorCopied
+int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
 ```
 
 epoll_ctl() 用于向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵红黑树上，通过回调函数内核会将 I/O 准备好的描述符加入到一个链表中管理，进程调用 epoll_wait() 便可以得到事件完成的描述符。
@@ -293,38 +293,38 @@ else
             c->handleReadEvent();
          }
     }
-}Copy to clipboardErrorCopied
+}
 ```
 
-## [工作模式](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=工作模式)
+## 工作模式
 
 epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）。
 
-### [1. LT 模式](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_1-lt-模式)
+### 1. LT 模式
 
-当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。是默认的一种模式，并且同时支持 Blocking 和 No-Blocking。
+当 epoll_wait() 检测到描述符事件到达时，**将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。**是默认的一种模式，并且同时支持 Blocking 和 No-Blocking。
 
-### [2. ET 模式](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_2-et-模式)
+### 2. ET 模式
 
-和 LT 模式不同的是，通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。
+和 LT 模式不同的是，**通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。**
 
 很大程度上减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高。只支持 No-Blocking，以避免由于一个文件句柄的阻塞读/阻塞写操作把处理多个文件描述符的任务饿死。
 
-## [应用场景](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=应用场景)
+## 应用场景
 
 很容易产生一种错觉认为只要用 epoll 就可以了，select 和 poll 都已经过时了，其实它们都有各自的使用场景。
 
-### [1. select 应用场景](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_1-select-应用场景)
+### 1. select 应用场景
 
 select 的 timeout 参数精度为 1ns，而 poll 和 epoll 为 1ms，因此 select 更加适用于实时性要求比较高的场景，比如核反应堆的控制。
 
 select **可移植性更好，几乎被所有主流平台所支持**。
 
-### [2. poll 应用场景](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_2-poll-应用场景)
+### 2. poll 应用场景
 
 poll 没有最大描述符数量的限制，如果平台支持并且对实时性要求不高，应该使用 poll 而不是 select。
 
-### [3. epoll 应用场景](https://cyc2018.github.io/CS-Notes/#/notes/Socket?id=_3-epoll-应用场景)
+### 3. epoll 应用场景
 
 只需要运行在 Linux 平台上，有大量的描述符需要同时轮询，并且这些连接最好是长连接。
 

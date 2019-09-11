@@ -78,6 +78,18 @@ synchronized保证的有序性是**多个线程之间的有序性**，即被加�
 
 <https://mp.weixin.qq.com/s?__biz=MzI3NzE0NjcwMg==&mid=2650124577&idx=1&sn=4f471855e58d2ded0c9044a3a7e9c698&chksm=f36bac00c41c25166ec3ca43e5811984e4977e8cbbd5f14947fb4d0bc9c67b4a80c726699ff2&mpshare=1&scene=1&srcid=&sharer_sharetime=1566227411677&sharer_shareid=6bdaaaa7a7186e9db8bed8df0280488e&key=0d0f56805bab0f0bffbb452991d4089e22eca92e0394df0320e46cb8951a1521f68614aa3b3e18e18472614c2f06903a9abeaeece5a8fd9d84c6774c0176d02b55fda8541641aee7ac3a32a40e8ea5a7&ascene=1&uin=NjQwMDg5ODE2&devicetype=Windows+10&version=62060833&lang=zh_CN&pass_ticket=GyAV0HglPjKSSS6TWDUd4kfc2fKq6HQ%2Bovbj%2B75KzMzPFzV88qAK6%2Fda65%2FMv6J1>
 
+## 9. synchronized发生异常会释放锁吗（美团）
+
+**synchronized在发生异常时，会自动释放线程占有的锁，因此不会导致死锁现象发生**
+
+## 10. synchronized是可重入锁吗，怎么实现的（CVTE)
+
+是的
+
+每一个锁关联一个线程持有者和计数器，当计数器为 0 时表示该锁没有被任何线程持有，那么任何线程都可能获得该锁而调用相应的方法；当某一线程请求成功后，JVM会记下锁的持有线程，并且将计数器置为 1；此时其它线程请求该锁，则必须等待；而该持有锁的线程如果再次请求这个锁，就可以再次拿到这个锁，同时计数器会递增；当线程退出同步代码块时，计数器会递减，如果计数器为 0，则释放该锁。
+
+https://www.cnblogs.com/incognitor/p/9894604.html
+
 
 # synchronized的缺陷
 

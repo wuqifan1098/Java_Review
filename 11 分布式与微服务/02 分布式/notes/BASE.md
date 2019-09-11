@@ -1,8 +1,4 @@
-# 前言
-
 BASE理论是由eBay架构师提出的。BASE是对CAP中一致性和可用性权衡的结果，其来源于对大规模互联网分布式系统实践的总结，是基于CAP定律逐步演化而来。其核心思想是即使无法做到强一致性，但每个应用都可以根据自身业务特点，才用适当的方式来使系统打到最终一致性。
-
-# 正文
 
 ## 1. CAP的3选2伪命题
 
@@ -16,7 +12,7 @@ BASE理论是由eBay架构师提出的。BASE是对CAP中一致性和可用性�
 
 ## 2. BASE理论简介
 
-BASE理论是Basically Available(基本可用)，Soft State（软状态）和Eventually Consistent（最终一致性）三个短语的缩写。
+BASE理论是**Basically Available(基本可用)，Soft State（软状态）和Eventually Consistent（最终一致性）**三个短语的缩写。
 
 其核心思想是：
 
