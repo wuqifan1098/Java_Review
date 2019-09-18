@@ -14,7 +14,7 @@ https://blog.csdn.net/dog_egg_/article/details/87647986
 - inner join(等值连接) 只返回两个表中联结字段相等的行，
 
 举例如下： 
---------------------------------------------
+
 表A记录如下：
 
     aID　　　　　aNum
@@ -37,7 +37,9 @@ https://blog.csdn.net/dog_egg_/article/details/87647986
 1.left join
 sql语句如下: 
 
-    select * from A left join B on A.aID = B.bID
+```mysql
+select * from A left join B on A.aID = B.bID
+```
 
 结果如下:
 
@@ -53,13 +55,16 @@ sql语句如下:
 
 left join是以A表的记录为基础的,**A可以看成左表,B可以看成右表**,left join是以左表为准的.
 换句话说,**左表(A)的记录将会全部表示出来**,而右表(B)只会显示符合搜索条件的记录(例子中为: A.aID = B.bID).
+
 B表记录**不足的地方均为NULL**.
---------------------------------------------
+
 2.right join
 
 sql语句如下: 
 
-	select * from A right join B on A.aID = B.bID
+```mysql
+select * from A right join B on A.aID = B.bID
+```
 
 结果如下:
 
@@ -72,12 +77,15 @@ sql语句如下:
 
 （所影响的行数为 5 行）
 结果说明:
+
 仔细观察一下,就会发现,和left join的结果刚好相反,这次是**以右表(B)为基础的,A表不足的地方用NULL填充.**
---------------------------------------------
+
 3.inner join
 sql语句如下: 
 
-    select * from A inner join B on A.aID = B.bID
+```mysql
+select * from A inner join B on A.aID = B.bID
+```
 
 结果如下:
 aID　　　　　aNum　　　　　bID　　　　　bName

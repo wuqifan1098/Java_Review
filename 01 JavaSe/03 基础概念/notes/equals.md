@@ -32,9 +32,9 @@
 
 在存储散列集合时(如 Set 类)，如果原对象.equals(新对象)，但没有对 hashCode 重写，即两个对象拥有不同的 hashCode，则在集合中将会存**储两个值相同的对象，从而导致混淆**。因此在重写 equals 方法时，必须重写 hashCode 方法。
 
-## [hashCode()](https://cyc2018.github.io/CS-Notes/#/notes/Java 基础?id=hashcode)
+## hashCode()
 
-hashCode() 返回散列值，而 equals() 是用来判断两个对象是否等价。等价的两个对象散列值一定相同，但是散列值相同的两个对象不一定等价。
+**hashCode() 返回散列值**，而 equals() 是用来判断两个对象是否等价。等价的两个对象散列值一定相同，但是散列值相同的两个对象不一定等价。
 
 在覆盖 equals() 方法时应当总是覆盖 hashCode() 方法，保证等价的两个对象散列值也相等。
 
@@ -65,7 +65,7 @@ public int hashCode() {
 }
 ```
 
-## [toString()](https://cyc2018.github.io/CS-Notes/#/notes/Java 基础?id=tostring)
+## toString()
 
 默认返回 ToStringExample@4554617c 这种形式，其中 @ 后面的数值为散列码的无符号十六进制表示。
 

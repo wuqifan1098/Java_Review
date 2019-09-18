@@ -7,15 +7,15 @@ Spring MVC是Spring中的基础 Web 框架，基于模型-视图-控制器（Mod
 
 具体步骤：       
 
-​              1、客户端发送请求先要经过前端控制器，请求被Spring 前端控制器DispatcherServlet获取，如详细图第一步：DispatcherServlet对请求URL进行解析（比如我们发送一个url如下的请求（http://localhost:8080/SpringMVC/hello.action），就会得到请求资源标示符（URI，相当于就是上面的hello.action ）。
+​              1、客户端发送**请求先要经过前端控制器**，请求被Spring 前端控制器DispatcherServlet获取，如详细图第一步：DispatcherServlet对请求URL进行解析（比如我们发送一个url如下的请求（http://localhost:8080/SpringMVC/hello.action），就会得到请求资源标示符（URI，相当于就是上面的hello.action ）。
 
-​              2、然后前端控制器DispatcherServlet根据URI，调用处理器映射器（HandlerMapping）获得该Handler配置的所有相关对象（包括Handler对象以及Handler对象对应的拦截器），最后生成处理器对象并返回给前端控制器。
+​              2、然后前端控制器DispatcherServlet根据URI，**调用处理器映射器（HandlerMapping）获得该Handler配置的所有相关对象**（包括Handler对象以及Handler对象对应的拦截器），最后**生成处理器对象并返回给前端控制器**。
 
-​              3、前端控制器调用处理器适配器去执行Handler，Handler执行完成给适配器返回ModelAndView，并将ModelAndView返回给DispatcherServlet。
+​              3、前端控制器**调用处理器适配器去执行Handler**，Handler执行完成给适配器**返回ModelAndView**，并将ModelAndView返回给DispatcherServlet。
 
-​              4、DispatcherServlet将ModelAndView传给ViewReslover视图解析器解析（解析成jsp），并返回View。
+​              4、DispatcherServlet将**ModelAndView传给ViewReslover视图解析器解析**（解析成jsp），并**返回View**。
 
-​              5、DispatcherServlet对View进行渲染视图（即将模型数据填充至视图中）。
+​              5、DispatcherServlet**对View进行渲染视图**（即将模型数据填充至视图中）。
 
 ​              6、最后将渲染视图的结果响应给客户端。
 

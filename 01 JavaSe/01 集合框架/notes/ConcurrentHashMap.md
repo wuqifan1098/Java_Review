@@ -60,7 +60,9 @@ https://www.cnblogs.com/keeya/p/9632958.html
 
 大量应用来的CAS方法进行变量、属性的修改工作。  利用CAS进行无锁操作，可以大大提高性能。
 
-ConcurrentHashMap定义了三个原子操作，用于对指定位置的节点进行操作。正是这些原子操作保证了ConcurrentHashMap的线程安全。
+ConcurrentHashMap定义了三个原子操作，用于对**指定位置的节点进行操作**。正是这些原子操作保证了
+
+ConcurrentHashMap的线程安全。
 
 https://blog.csdn.net/u010647035/article/details/86375981
 
@@ -79,6 +81,16 @@ Synchronized是将每一个Node对象作为了一个锁,这样做的好处是什
 如果是线程并发量不大的情况下,那么Synchronized因为自旋锁,偏向锁,轻量级锁的原因,不用将等待线程挂起,偏向锁甚至不用自旋,所以在这种情况下要比ReentrantLock高效
 
 https://www.cnblogs.com/yangfeiORfeiyang/p/9694383.html
+
+## 9. 扩容时读写怎么操作
+
+  (1)对于get读操作，如果当前节点有数据，还没迁移完成，此时不影响读，能够正常进行。 
+
+如果当前链表已经迁移完成，那么头节点会被设置成fwd节点，此时get线程会帮助扩容。 
+
+(2)对于put/remove写操作，如果当前链表已经迁移完成，那么头节点会被设置成fwd节点，此时写线程会帮助扩容，如果扩容没有完成，当前链表的头节点会被锁住，所以写线程会被阻塞，直到扩容完成。  
+
+https://www.cnblogs.com/lfs2640666960/p/9621461.html
 
 # 1.存储结构
 
@@ -526,17 +538,36 @@ public V put(K key, V value) {
  2、initTable 作用是初始化table数组
  3、treeifyBin 作用是将table[i]的链表转化为树
 
+```
+1、根据 key 计算 hash 值
+
+2、遍历数组 tab 
+2.1、如果数组为空，进行数组初始化 initTable()
+2.2、如果数组不为空，根据 hash 值找到在数组 tab 中的位置，并获取该位置的第一个节点元素对象
+    2.2.1、如果数组该位置为空，使用 CAS 操作将值放入该位置
+    2.2.2、如果数组该位置的首个元素的hash 值等于 MOVED ，说明在扩容，帮助数据迁移 
+    helpTransfer
+    
+2.3、如果不满足以上（2.1、2.2）条件，执行以下逻辑：
+    2.3.1、获取数组该位置的首节点的监视器锁
+    2.3.2、首节点 hash 值大于 0，说明是链表，链表遍历插入值
+    2.3.3、否则为红黑树，使用红黑树的 putTreeVal 方法，插入新值
+    2.3.4、如果以上执行的是链表操作，判断链表长度是否达到限定值，是否需要转换为红黑树
+```
+
+https://blog.csdn.net/u010647035/article/details/86375981
+
 ### 总结
 
 - 根据 key 计算出 hashcode 。
 
 - 判断是否需要进行初始化。
 
-- `f` 即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。
+- `f` 即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，**利用 CAS 尝试写入**，失败则自旋保证成功。
 
 - 如果当前位置的 `hashcode == MOVED == -1`,则需要进行扩容。
 
-- 如果都不满足，则利用 synchronized 锁写入数据。
+- 如果都不满足，**则利用 synchronized 锁写入数据**。
 
 - 如果数量大于 `TREEIFY_THRESHOLD` 则要转换为红黑树。
 

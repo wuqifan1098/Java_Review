@@ -9,7 +9,7 @@ URL地址重写是对客户端不支持Cookie的解决方案。URL地址重写�
 response.encodeRedirectURL(java.lang.String url) 用于对sendRedirect方法后的url地址进行重写。
 response.encodeURL(java.lang.String url)用于对表单action和超链接的url地址进行重写
 
-### 一.在URL后面手动拼接jsessionid
+**在URL后面手动拼接jsessionid**
 
 
 ```java
@@ -27,7 +27,7 @@ response.encodeURL(java.lang.String url)用于对表单action和超链接的url�
 	writer.print("<a href='/session/list;jsessionid="+jsessionid+"' >箱子</a>");
 ```
 
-### 二.使用响应对象HttpServletRequest中的encodeURL(String path)方法实现jsessionid的自动拼接 
+**使用响应对象HttpServletRequest中的encodeURL(String path)方法实现jsessionid的自动拼接** 
 
 ```java
 //------------使用session解决数据共享问题---------------------
@@ -81,7 +81,17 @@ b)在程序中手动设置
 
 session.setMaxInactiveInterval(30 * 60);//设置单位为秒，设置为-1永不过期
 
-request.getSession().setMaxInactiveInterval(-1)*;//永不过期*
+request.getSession().setMaxInactiveInterval(-1);//永不过期
+
+## 3. Cookie 与 Session的区别
+
+- Cookie以**文本文件格式**存储在浏览器中，而session**可以存取任何类型的数据**。
+
+- cookie的存储限制了数据量，只允许4KB，而session是无限量的
+
+- **Cookie 一般用来保存用户信息**，**Session 的主要作用就是通过服务端记录用户的状态**
+
+- Cookie 存储在客户端中，而Session存储在服务器上，相对来说 **Session 安全性更高**。
 
 # Cookie
 
@@ -114,7 +124,7 @@ Cookie 和 Session都是用来跟踪浏览器用户身份的会话方式，但�
 
 **Cookie 一般用来保存用户信息** 比如①我们在 Cookie 中保存已经登录过得用户信息，下次访问网站的时候页面可以自动帮你登录的一些基本信息给填了；②一般的网站都会有保持登录也就是说下次你再访问网站的时候就不需要重新登录了，这是因为用户登录的时候我们可以存放了一个 Token 在 Cookie 中，下次登录的时候只需要根据 Token 值来查找用户即可(为了安全考虑，重新登录一般要将 Token 重写)；③登录一次网站后访问网站其他页面不需要重新登录。**Session 的主要作用就是通过服务端记录用户的状态。**典型的场景是购物车，当你要添加商品到购物车的时候，系统不知道是哪个用户操作的，因为 HTTP 协议是无状态的。服务端给特定的用户创建特定的 Session 之后就可以标识这个用户并且跟踪这个用户了。
 
-Cookie 数据保存在客户端(浏览器端)，Session 数据保存在服务器端。
+Cookie 数据**保存在客户端(浏览器端)**，Session 数据**保存在服务器端**。
 
 Cookie 存储在客户端中，而Session存储在服务器上，相对来说 **Session 安全性更高**。如果使用 Cookie 的一些敏感信息不要写入 Cookie 中，最好能将 Cookie 信息加密然后使用到的时候再去服务器端解密。
 
@@ -123,3 +133,16 @@ Cookie 存储在客户端中，而Session存储在服务器上，相对来说 **
 ## 实现原理
 
 服务器创建session出来后，会**把session的id号，以cookie的形式**回写给客户机，这样，只要客户机的浏览器不关，再去访问服务器时，都会带着session的id号去，服务器发现客户机浏览器带session id过来了，就会使用内存中与之对应的session为之服务。
+
+# Token
+
+**Token是服务端生成的一串字符串，以作客户端进行请求的一个令牌**。当客户端第一次访问服务端，服务端会根据传过来的唯一标识userId，运用一些算法，并加上密钥，生成一个Token，然后通过BASE64编码一下之后将这个Token返回给客户端，客户端将Token保存起来（可以通过数据库或文件形式保存本地）。下次请求时，客户端只需要带上Token，服务器收到请求后，会用相同的算法和密钥去验证Token。
+
+使用基于 Token 的身份验证方法，在服务端不需要存储用户的登录记录。大概的流程是这样的：
+
+- 客户端使用用户名跟密码请求登录
+- 服务端收到请求，去验证用户名与密码
+- 验证成功后，服务端会签发一个 Token，再把这个 Token 发送给客户端
+- 客户端收到 Token 以后可以把它存储起来，比如放在 Cookie 里或者数据库里
+- 客户端每次向服务端请求资源的时候需要带着服务端签发的 Token
+- 服务端收到请求，然后去验证客户端请求里面带着的 Token，如果验证成功，就向客户端返回请求的数据

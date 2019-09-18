@@ -49,26 +49,48 @@ https://www.cnblogs.com/getting-better/p/3245993.html
 
 <https://mp.weixin.qq.com/s?__biz=MzI3NzE0NjcwMg==&mid=2650124577&idx=1&sn=4f471855e58d2ded0c9044a3a7e9c698&chksm=f36bac00c41c25166ec3ca43e5811984e4977e8cbbd5f14947fb4d0bc9c67b4a80c726699ff2&mpshare=1&scene=1&srcid=&sharer_sharetime=1566227411677&sharer_shareid=6bdaaaa7a7186e9db8bed8df0280488e&key=0d0f56805bab0f0bffbb452991d4089e22eca92e0394df0320e46cb8951a1521f68614aa3b3e18e18472614c2f06903a9abeaeece5a8fd9d84c6774c0176d02b55fda8541641aee7ac3a32a40e8ea5a7&ascene=1&uin=NjQwMDg5ODE2&devicetype=Windows+10&version=62060833&lang=zh_CN&pass_ticket=GyAV0HglPjKSSS6TWDUd4kfc2fKq6HQ%2Bovbj%2B75KzMzPFzV88qAK6%2Fda65%2FMv6J1>
 
-## 1.volatile是JVM提供的轻量级的同步机制
+## 6. volatile为什么不保证原子性?
 
-### 1.1 保证可见性
+Java中只有对**基本类型变量的赋值和读取是原子操作**，如i = 1的赋值操作，但是像j = i或者i++这样的操作都不是原子操作，因为他们都**进行了多次原子操作**，比如先读取i的值，再将i的值赋值给j，两个原子操作加起来就不是原子操作了。
+
+所以，如果一个变量被volatile修饰了，那么肯定可以保证每次读取这个变量值的时候得到的值是最新的，但是一旦需要对变量进行**自增这样的非原子操作，就不会保证这个变量的原子性了。**
+
+原文链接：https://blog.csdn.net/xdzhouxin/article/details/81236356
+
+## 7. 为什么原子类可以保证原子性？
+
+原子类基于CAS操作。
+
+因为CAS是**基于乐观锁的，也就是说当写入的时候，如果寄存器旧值已经不等于现值，说明有其他CPU在修改，那就继续尝试。所以这就保证了操作的原子性。**
+
+# 1.volatile是JVM提供的轻量级的同步机制
+
+## 1.1 保证可见性
 
 一个线程修改数据后，其他线程可以知道。
 
 原理是在**每次访问变量时都会进行一次刷新**，因此每次访问都是**主内存中最新的版本**。所以 volatile 关键字的作用之一就是保证变量修改的实时可见性。
 
-### 1.2 不保证原子性
+#### 内存屏障
+
+内存屏障（[memory barrier](http://en.wikipedia.org/wiki/Memory_barrier)）是一个CPU指令。基本上，它是这样一条指令： **a) 确保一些特定操作执行的顺序； b) 影响一些数据的可见性(可能是某些指令执行后的结果)。**编译器和CPU可以在保证输出结果一样的情况下对指令重排序，使性能得到优化。插入一个内存屏障，相当于**告诉CPU和编译器先于这个命令的必须先执行，后于这个命令的必须后执行**。内存屏障另一个作用是强制更新一次不同CPU的缓存。例如，一个写屏障会把这个屏障前写入的数据刷新到缓存，这样任何试图读取该数据的线程将得到最新值，而不用考虑到底是被哪个cpu核心或者哪颗CPU执行的。
+
+内存屏障（[memory barrier](http://en.wikipedia.org/wiki/Memory_barrier)）和volatile什么关系？上面的虚拟机指令里面有提到，如果你的字段是volatile，Java内存模型将在写操作后插入一个写屏障指令，在读操作前插入一个读屏障指令。这意味着如果你对一个volatile字段进行写操作，你必须知道：1、一旦你完成写入，任何访问这个字段的线程将会得到最新的值。2、在你写入前，会保证所有之前发生的事已经发生，并且任何更新过的数据值也是可见的，因为内存屏障会把之前的写入值都刷新到缓存。
+
+## 1.2 不保证原子性
 
 原子性：不可分割，完整性，某个线程做某个业务时，中间不可以被加塞或者被分割。要么同时成功，要么同时失败。
+
+
 
 #### 如何解决
 
 - 加synchronized
 - **使用juc下的AtomicInteger**(CAS)
 
-### 1.3 禁止指令重排
+## 1.3 禁止指令重排
 
-## 2.JMM谈谈
+# 2.JMM谈谈
 
 线程对变量的操作必须在工作内存中进行，首先将变量从主内存拷贝到自己的工作内存，然后对变量进行操作，操作完成后再将变量写回主内存。
 
@@ -78,12 +100,12 @@ https://www.cnblogs.com/getting-better/p/3245993.html
 
 ### 2.3 有序性
 
-## 3.你在哪里用到过volatile
+# 3.你在哪里用到过volatile
 
 - 双端检索机制（DLC）
 - 状态标记量
 
-## 4.volatile 与 synchronized 的比较
+# 4.volatile 与 synchronized 的比较
 
 - volatile**轻量级**，只能**修饰变量**。synchronized**重量级**，还可**修饰方法**。
 - volatile只能**保证数据的可见性，不能用来同步**，因为多个线程并发访问volatile修饰的变量不会阻塞。

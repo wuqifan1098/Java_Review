@@ -123,7 +123,7 @@ String[] getAliases(String name)
 
 FactoryBean也是接口，为IOC容器中Bean的实现提供了更加灵活的方式，FactoryBean在IOC容器的基础上给Bean的实现加上了一个简单工厂模式和装饰模式(如果想了解装饰模式参考：[修饰者模式(装饰者模式，Decoration)](https://www.cnblogs.com/aspirant/p/9083082.html) 我们可以在getObject()方法中灵活配置。
 
-## 4.Bean的注入方式
+## 4. Bean的注入方式
 
 - 属性注入
 - 构造器注入
@@ -131,7 +131,13 @@ FactoryBean也是接口，为IOC容器中Bean的实现提供了更加灵活的�
 
 ## 5. 解决循环依赖的方式
 
+不要使用**基于构造函数的依赖注入**，可以通过以下方式解决：
 
+　　1.在字段上使用@Autowired注解，让Spring决定在合适的时机注入
+
+　　2.用**基于setter方法的依赖注入。**
+
+https://www.cnblogs.com/liuqing576598117/p/11227007.html
 
 ## 6. bean的初始化和销毁几种方式（有赞）
 

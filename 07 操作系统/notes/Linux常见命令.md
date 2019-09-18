@@ -37,6 +37,45 @@ lsof  -i:port
 
 - 项目**代码中排查有问题的代码**, 问题出在xx行代码, 造成了cpu的满载问题
 
+## 4. 查看日志
+
+cat service.log
+
+tail -f service.log
+
+vim serivice.log
+
+面对比较大的日志文件，这我们就得配合grep来玩了，比如我们现在得知某个手机号收不到短信验证码，想要看一下这个手机号的日志是怎么样的。于是我们就可以这样搞：
+
+cat service.log | grep 13888888888
+
+查看行数
+现在行数是29506，我们一般只要看一下29506的前10行和后10行就差不多知道问题出现在哪了，于是我们可以这样做：
+
+sed -n "29496,29516p" service.log：从29496行开始检索，到29516行结束
+
+cat -n service.log | tail -n +29496 | head -n 20:从29496行开始检索，往前推20条
+
+https://www.jianshu.com/p/8a6ac20b945f
+
+## 5. 查看进程和端口
+
+查进程有两个命令：
+
+ps -ef
+
+ps aux
+
+上面两个命令都是列出所有的进程，我们还是通过 |管道和grep 来过滤掉想要查的进程，比如说：ps -ef |grep java
+
+查端口也是一个很常见的操作，常见命令：netstat -lntup
+
+https://www.jianshu.com/p/8a6ac20b945f
+
+## 6. 查看系统的状态
+
+TOP实时查看进程的状态
+
 
 # 一、文件和目录
 

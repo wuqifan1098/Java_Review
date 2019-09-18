@@ -318,12 +318,6 @@ UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSwapInt(JNIEnv *env, jobject unsafe, job
  }
 ```
 
-
-
 ![img](https://img2018.cnblogs.com/blog/1157683/201810/1157683-20181028141226106-1702019423.png)
-
-##  总结
-
-​     通过对CAS的理解和实验，我们更加深刻的理解了CAS的乐观锁，以及在java中的相应实现和对应ABA补丁的实现。
 
 转载 ：https://www.cnblogs.com/zyrblog/p/9864932.html
