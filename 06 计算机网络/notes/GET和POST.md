@@ -2,25 +2,25 @@
 
 ## 1.GET和POST的区别
 
-1、传送方式：get通过**地址栏传输**，post通过**报文传输**。
+“1. GET使用URL或Cookie传参，而POST将数据放在BODY中”，这个是因为HTTP协议用法的约定。并非它们的本身区别。
 
-2、传送长度：get参数**有长度限制（受限于url长度）**，而post**无限制**
+“2. GET方式提交的数据有长度限制，则POST的数据则可以非常大”，这个是因为它们**使用的操作系统和浏览器设置**的不同引起的区别。也不是GET和POST本身的区别。
 
-3、GET产生一个TCP数据包；POST产生两个TCP数据包。
+“3. POST比GET安全，因为数据在地址栏上不可见”，如果没有加密，他们安全级别都是一样的，随便一个监听器都可以把所有的数据监听到。
 
-对于GET方式的请求，浏览器会把http header和data一并发送出去，服务器响应200（返回数据）
+4.幂等性 GET请求是幂等性的，POST请求不是
 
-而对于POST，浏览器先发送header，服务器响应100 continue，浏览器再发送data，服务器响应200 ok（返回数据）。
+https://www.jianshu.com/p/fd67b576365d
 
-https://www.nowcoder.com/discuss/256231?type=1
+# HTTP幂等性
 
-# 幂等性
+HTTP GET方法**用于获取资源，不应有副作用，所以是幂等的。**比如：GET http://www.bank.com/account/123456，不会改变资源的状态，不论调用一次还是N次都没有副作用。请注意，这里强调的是**一次和N次具有相同的副作用，而不是每次GET的结果相同。**GET http://www.news.com/latest-news这个HTTP请求可能会每次得到不同的结果，但它本身并没有产生任何副作用，因而是满足幂等性的。
 
-幂等的 HTTP 方法，**同样的请求被执行一次与连续执行多次的效果是一样的，服务器的状态也是一样的。**
+HTTP DELETE方法用于删除资源，有副作用，但它应该满足幂等性。比如：DELETE http://www.forum.com/article/4231，调用一次和N次对系统**产生的副作用是相同的**，即删掉id为4231的帖子；因此，调用者可以多次调用或刷新页面而不必担心引起错误。
 
-GET，HEAD，PUT 和 DELETE 等方法都是幂等的，
+POST所对应的URI并非创建的资源本身，而是资源的接收者。比如：POST http://www.forum.com/articles的语义是在http://www.forum.com/articles下创建一篇帖子，HTTP响应中应包含帖子的创建状态以及帖子的URI。两次相同的POST请求会在服务器端创建两份资源，它们具有不同的URI；所以，POST方法不具备幂等性。而PUT所对应的URI是要创建或更新的资源本身。比如：PUT http://www.forum/articles/4231的语义是创建或更新ID为4231的帖子。对同一URI进行多次PUT的副作用和一次PUT是相同的；因此，PUT方法具有幂等性。
 
-而POST 方法不是。所有的安全方法也都是幂等的。
+https://www.cnblogs.com/weidagang2046/archive/2011/06/04/idempotence.html?from=singlemessage&isappinstalled=0
 
 # GET和POST的区别
 
