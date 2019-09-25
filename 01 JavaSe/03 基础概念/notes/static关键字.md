@@ -180,6 +180,105 @@ static final用来修饰成员变量和成员方法，可简单理解为“全�
 
 https://zhuanlan.zhihu.com/p/42961231
 
+## 初始化块、静态初始化块、构造函数的执行顺序
+
+## 执行顺序
+
+首先定义A, B, C三个类用作测试，其中B继承了A，C又继承了B，并分别给它们加上静态初始化块、非静态初始化块和构造函数，里面都是一句简单的输出。主类Main里面也如法炮制。 测试代码
+
+```java
+class A {
+    static {
+        System.out.println("Static init A.");
+    }
+
+    {
+        System.out.println("Instance init A.");
+    }
+
+    A() {
+        System.out.println("Constructor A.");
+    }
+}
+
+class B extends A {
+    static {
+        System.out.println("Static init B.");
+    }
+
+    {
+        System.out.println("Instance init B.");
+    }
+
+    B() {
+        System.out.println("Constructor B.");
+    }
+}
+
+class C extends B {
+
+    static {
+        System.out.println("Static init C.");
+    }
+
+    {
+        System.out.println("Instance init C.");
+    }
+
+    C() {
+        System.out.println("Constructor C.");
+    }
+}
+
+public class Main {
+
+    static {
+        System.out.println("Static init Main.");
+    }
+
+    {
+        System.out.println("Instance init Main.");
+    }
+
+    public Main() {
+        System.out.println("Constructor Main.");
+    }
+
+    public static void main(String[] args) {
+        C c = new C();
+        //B b = new B();
+    }
+}
+```
+
+当然这里不使用内部类，因为内部类不能使用静态的定义；而用静态内部类就失去了一般性。那么可以看到，当程序进入了main函数，并创建了一个类C的对象之后，输出是这样子的：
+
+```text
+Static init Main.
+Static init A.
+Static init B.
+Static init C.
+Instance init A.
+Constructor A.
+Instance init B.
+Constructor B.
+Instance init C.
+Constructor C.
+```
+
+观察上面的输出，可以观察到两个有趣的现象：
+
+1)Main类是肯定没有被实例化过的，但是由于执行main入口函数用到了Main类，于是static初始化块也被执行了；
+
+2)所有的静态初始化块都优先执行，其次才是非静态的初始化块和构造函数，它们的执行顺序是：
+
+- 父类的静态初始化块
+- 子类的静态初始化块
+- 父类的初始化块
+- 父类的构造函数
+- 子类的初始化块
+- 子类的构造函数
+
 # final
 
 “只读”修饰符

@@ -1,4 +1,4 @@
-# 面试题
+面试题
 
 ## 1.SpringBoot的优缺点（贝贝、海康、思必驰）
 
@@ -17,30 +17,53 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 
 **没有提供相应的服务发现和注册的配套功能**，自身的acturator所提供的监控功能，也需要与现有的监控对接。**没有配套的安全管控方案**，对于REST的落地，还需要自行结合实际进行URI的规范化工作。
 
-## 沉淀再出发:spring boot的理解
+## 2. springboot的自动配置关键注解有哪些
 
-### 一、前言
+每次我们直接直接启动这个**启动类，**SpringBoot就启动成功了，并且帮我们配置了好多自动配置类。
+
+其中最重要是 **@SpringBootApplication** 这个注解
+
+- @SpringBootConfiguration : Spring Boot的配置类，标注在某个类上，表示这是一个Spring Boot的配置类
+- @EnableAutoConfiguration: 开启自动配置类，SpringBoot的精华所在。
+- @ComponentScan包扫描
+
+　　**以前我们需要配置的东西，Spring Boot帮我们自动配置；@EnableAutoConfiguration告诉SpringBoot开启自动配置功能；这样自动配置才能生效；**
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@AutoConfigurationPackage
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+```
+
+### **两个比较重要的注解：**
+
+- @AutoConfigurationPackage：自动配置包
+- @Import: 导入自动配置的组件
+
+https://www.cnblogs.com/wenbochang/p/9851314.html
+
+# 一、前言
 
 ​    关于spring boot，我们肯定听过了很多遍了，其实最本质的东西就是COC（convention over configuration），将各种框架组装起来，省去了我们配置各种框架的时间，是一种更高层次的封装和抽象，正如maven整合了很多的jar包一样，spring boot整合了很多的框架和操作，我们只需要简单的加载进来就可以使用了，这极大地方便了我们的程序开发效率。
 
-### 二、spring boot的使用
+# 二、spring boot的使用
 
-####  2.1、Spring Boot核心功能： 
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+##  2.1、Spring Boot核心功能： 
 
 ```
-1     独立运行的Spring项目：可以以jar包形式独立运行，通过java -jar xx.jar即可运行
-2     内嵌Servlet容器：可以选择内嵌Tomcat、Jetty等
-3     提供starter简化maven配置：一个maven项目，使用了spring-boot-starter-web时，会自动加载Spring Boot的依赖包
-4     自动配置Spring：Spring Boot会根据在类路径中的jar包、类，为jar包中的类自动配置Bean
-5     准生产的应用监控：提供基于http、ssh、telnet对运行时的项目进行监控
-6     无代码生成和xml配置：主要通过条件注解来实现
+     独立运行的Spring项目：可以以jar包形式独立运行，通过java -jar xx.jar即可运行
+     内嵌Servlet容器：可以选择内嵌Tomcat、Jetty等
+     提供starter简化maven配置：一个maven项目，使用了spring-boot-starter-web时，会自动加载Spring Boot的依赖包
+     自动配置Spring：Spring Boot会根据在类路径中的jar包、类，为jar包中的类自动配置Bean
+     准生产的应用监控：提供基于http、ssh、telnet对运行时的项目进行监控
+     无代码生成和xml配置：主要通过条件注解来实现
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-####  2.2、Spring Boot项目搭建
+##  2.2、Spring Boot项目搭建
 
 　　**这里使用maven进行项目搭建，有几种搭建方式：**
 
@@ -48,7 +71,7 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 `1、http:``//start.spring.io/，填写相关的项目信息、jdk版本，需要的组件等，就会生成一个maven项目的压缩包，下载解压导入IDE（比如IntelliJ IDEA）就可以。``2、IDE下直接创建，IntelliJ IDEA均支持直接搭建，Spring Tool Suite：新建Spring Initializr项目,填写项目信息和选择技术，将项目设置成maven项目；IntelliJ IDEA：新建Spring Starter project,填写项目信息和选择技术完成maven工程创建。``3、Spring Boot CLI工具，使用命令创建。``4、手工构建maven项目，任意IDE新建空maven项目，修改pom.xml添加Spring Boot的父级依赖Spring-boot-starter-parent，添加之后这个项目就是一个Spring Boot项目了，这也是其他方式生成的本质，引入依赖。`
 ```
 
-####  下面我们通过前两种方式来创建工程，首先是第一种，从网址：http://start.spring.io/ 获取工程压缩文件：
+下面我们通过前两种方式来创建工程，首先是第一种，从网址：http://start.spring.io/ 获取工程压缩文件：
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116142516643-1322307642.png)
 
@@ -75,8 +98,6 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116143133624-2034714958.jpg)
 
    **然后我们看到之前已经生成了一个以项目名大写的文件“XXXApplication.java”，这个文件就是程序执行的入口点，我们可以在这个文件下面加一点简单的映射：**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
  1 package com.springboot.zyrboot;
@@ -105,7 +126,7 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 24 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+
 
   **然后运行main函数，就这样Tomcat就开始运行了，我们根本就没有配置呢，全靠spring boot帮我们做好了这些繁琐的工作：**
 
@@ -117,7 +138,7 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116144500806-1228780365.png)
 
-####  **下面讲一下第二种创建工程的方法：**
+**下面讲一下第二种创建工程的方法：**
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116144643732-943405207.png)
 
@@ -133,11 +154,9 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 
    **剩下的两种方式其实本质上和上面的两种一样的，最后都落实到了pom.xml文件的某些配置上。**
 
-####  **2.3、Spring boot工程解析**
+##  **2.3、Spring boot工程解析**
 
    **让我们看看自动生成的pom.xml文件吧，可以看到我们选择的web组件已经加载了，最重要的是<parent>标签里面的东西，这个标签是在配置 Spring Boot 的父级依赖，有了这个当前的项目才是 Spring Boot 项目，spring-boot-starter-parent 是一个特殊的 starter ，它用来提供相关的 Maven 默认依赖，使用它之后，常用的包依赖就可以省去 version 标签。**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
  1 <?xml version="1.0" encoding="UTF-8"?>
@@ -192,15 +211,13 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 50 </project>
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
   **有了这个parent依赖和我们简单的web,test和maven插件配置之后，我们可以看到系统自动导入了非常多的外置包：**
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116145636998-1632102403.png)
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116145712278-1396876073.png)
 
-####  应用入口类
+应用入口类
 
 ​    ***Spring Boot 项目通常有一个名为 \*Application 的入口类，***入口类里有一个 main 方法， 这个 main 方法其实就是一个标准的 Java 应用的入口方法。
 ***@SpringBootApplication 是 Spring Boot 的核心注解，它是一个组合注解，该注解组合了：@Configuration、@EnableAutoConfiguration、@ComponentScan；*** 若不是用 @SpringBootApplication 注解也可以使用这三个注解代替。其中，***@EnableAutoConfiguration*** 让 Spring Boot 根据类路径中的 jar 包依赖为当前项目进行自动配置，例如，添加了 spring-boot-starter-web 依赖，会自动添加 Tomcat 和 Spring MVC 的依赖，那么 Spring Boot 会对 Tomcat 和 Spring MVC 进行自动配置。Spring Boot 还会自动扫描 @SpringBootApplication 所在类的同级包以及下级包里的 Bean ，所以入口类建议就配置在 grounpID + arctifactID 组合的包名下。
@@ -219,8 +236,6 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116151248897-1034111959.png)
 
   **程序如下：**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
  1 package com.example.zyrdemo;
@@ -243,15 +258,11 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 18 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
   **需要这样才能访问我们的程序了：**
 
  ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116151008783-671006090.png)
 
 ​    **另外，难道我们的程序，必须要写道这个“XXXApplication.java”的文件里面吗？肯定不是的，我们在同一包下再加一个文件：**
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
  1 package com.example.zyrdemo;
@@ -267,8 +278,6 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 11 }
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116151806319-1741084767.png)
 
   **然后运行一下，发现同样的可以访问了：**
@@ -281,6 +290,6 @@ Spring Boot作为一个微框架，离微服务的实现还是有距离的。spr
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181116152247909-861016147.png)
 
-###  三、总结
+#  三、总结
 
 ​    **通过对spring boot的学习和理解，我们发现一些理念和工具是深深结合的，并且随着工具的多样化，就会进行整合，从而得到更大程度的可用性，减少不必要的配置，通过统一配置的方式，我们可以更加快速地将工作重点转移到实际的业务逻辑之中。**

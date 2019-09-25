@@ -222,7 +222,7 @@ HashMap中定位到桶的位置，根据**Key的hash值与数组的长度取模*
 
 ## 22. hashMap如何解决哈希碰撞
 
-1.7采用的是链地址法，会使HashMap的性能从O(1)降到O(N)。
+1.7采用的是拉链树，会使HashMap的性能从O(1)降到O(N)。
 
 1.8使用红黑树，将最差性能从O(N)提高到O(logn)
 
@@ -257,6 +257,16 @@ https://www.cnblogs.com/lfs2640666960/p/9621461.html
 到6的时候，维护红黑树的开销大于链表遍历的开销了
 
 ## 28.HashMap在扩容的时候允许其他线程去查找么
+
+允许
+
+## 29. 为什么hashmap允许null，concurrentHashmap不允许(有赞）
+
+用于单线程状态的hashmap却可以用containsKey（key） 去判断到底是否包含了这个null。
+
+ConcurrentHashMap不能put null 是因为 无法分辨是key没找到的null还是有key值为null，这在**多线程里面是模糊不清的**，所以压根就不让put null
+
+https://blog.csdn.net/qq_25560423/article/details/77713423
 
 
 

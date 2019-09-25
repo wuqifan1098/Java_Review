@@ -24,5 +24,18 @@ char 表示定长，长度固定，varchar表示变长，即长度可变。char�
 - 执行order by
 - 输出结果
 
+having是分组（group by）后的筛选条件，分组后的数据组内再筛选
+where则是在分组前筛选
+
+where子句中不能使用聚集函数，而having子句中可以，所以在集合函数中加上了HAVING来起到测试查询结果是否符合条件的作用。
+即having子句的适用场景是可以使用聚合函数
+
+having 子句限制的是组，而不是行
+having 子句中的每一个元素也必须出现在select列表中。有些数据库例外，如oracle
+
+当同时含有 where 子句、group by 子句 、having 子句及聚集函数时，执行顺序如下：
+执行where子句查找符合条件的数据；
+使用group by 子句对数据进行分组；对group by 子句形成的组运行聚集函数计算每一组的值；最后用having 子句去掉不符合条件的组
+
 https://blog.csdn.net/alice_tl/article/details/88764591
 

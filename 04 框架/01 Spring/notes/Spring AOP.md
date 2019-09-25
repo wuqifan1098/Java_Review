@@ -9,16 +9,12 @@
 
 3. 将切面配置到xml中，当然，我们也可以使用自动扫描Bean的方式。这样的话，那就交由Spring AoP容器管理。 
 
-   
-
    注意：
 
    - @Aspect：意思是这个类为切面类  
-   - @Componet：因为作为切面类需要 Spring 管理起来，所以在初始化时就需要将这个类初始化加入 Spring 的管理；  
+- @Componet：因为作为切面类需要 Spring 管理起来，所以在初始化时就需要将这个类初始化加入 Spring 的管理；  
    - @Befoe：切入点的逻辑(Advice)
    - execution…:切入点语法 
-
-
 
 ## 2. 什么是AOP（华数）
 
@@ -33,6 +29,14 @@ aop就是面向切面的编程。比如说你每做一次对数据库操作，�
 通过“**继承”可以继承父类所有的公开方法，然后可以重写这些方法**，在重写时对这些方法增强，这就是cglib的思想。
 
 https://www.cnblogs.com/xrq730/p/6661692.html
+
+## 4. Spring AOP和AspectJ AOP的区别
+
+Spring AOP属于**运行时增强**，而AspectJ是**编译时增强**。
+
+Spring AOP**基于代理（Proxying）**，而AspectJ**基于字节码操作（Bytecode Manipulation）**。
+
+AspectJ相比于Spring AOP功能更加强大，但是Spring AOP相对来说更简单。如果切面比较少，那么两者性能差异不大。但是，当切面太多的话，最好选择AspectJ，它比SpringAOP快很多。
 
 # AOP中的基本概念
 

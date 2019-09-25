@@ -87,7 +87,7 @@ public class ThemeChangeInterceptor extends HandlerInterceptorAdapter {
 
 # 在Spring中自定义处理程序拦截器
 
-我们如果在项目中使用了Spring框架，那么，我们可以直接继承HandlerInterceptorAdapter.java这个抽象类，来实现我们自己的拦截器。
+我们如果在项目中使用了Spring框架，那么，我们可以**直接继承HandlerInterceptorAdapter.java这个抽象类**，来实现我们自己的拦截器。
 
 **preHandle**：预处理回调方法，实现处理器的预处理（如登录检查），第三个参数为响应的处理器（如我们上一章的Controller实现）；
 

@@ -269,7 +269,7 @@ option 参数：
 
 详细参数说明请参考官方文档：Java HotSpot VM Options，这里仅列举常用参数。
 
-**JVM 内存配置**
+**JVM 内存配置** 
 
 配置描述-Xms堆空间初始值。-Xmx堆空间最大值。-XX:NewSize新生代空间初始值。-XX:MaxNewSize新生代空间最大值。-Xmn新生代空间大小。-XX:PermSize永久代空间的初始值。-XX:MaxPermSize永久代空间的最大值。
 
