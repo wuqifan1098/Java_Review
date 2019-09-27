@@ -50,6 +50,10 @@ CountDownLatch
 
 Semaphore可以有多个锁，可允许多个线程拥有执行权，如果并发访问同一个对象，会产生线程安全问题。
 
+## 8. CountDownLatch怎么保证线程顺序执行(美的)
+
+
+
 # CountDownLatch
 
 ## 1.简介

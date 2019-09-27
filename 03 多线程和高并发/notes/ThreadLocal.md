@@ -16,6 +16,12 @@ ThreadLocal类中有一个Map，用于存储每一个线程的变量副本，**M
 
 https://blog.csdn.net/hejingyuan6/article/details/36627311
 
+## 4. ThreadLocal的底层原理（中兴）
+
+
+
+
+
 # 一、对ThreadLocal的理解
 
 ThreadLocal**提供了线程的局部变量**，每个线程都可以通过set()和get()来对这个局部变量进行操作，而不会影响其它线程所对应的副本，避免了线程竞争，**实现了线程的数据隔离**。
@@ -235,6 +241,62 @@ return setInitialValue();
 (2)  适用于资源共享但不需要维护状态的情况，也就是一个线程对资源的修改，不影响另一个线程的运行；
 
 (3) 基于ThreadLocal实现线程安全是采用"空间换时间"，synchronized顺序执行是"时间换取空间"。
+
+一般在**连接池优化**上会使用到ThreadLocal，在多线程获取连接池时，会有同步操作，影响性能。如果使用ThreadLocal，每个线程使用自己的独立连接，性能会有一定的提升。
+
+```java
+public class DBUtil {  
+    //创建一个存储数据库连接对象的ThreadLocal线程本地变量  
+    private static ThreadLocal<Connection> tl = new ThreadLocal<Connection>();  
+  
+    static{  
+        try {  
+            //注册驱动  
+            DriverManager.registerDriver(new oracle.jdbc.OracleDriver());  
+        } catch (SQLException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+      
+    /* 
+     * 获取数据库的连接对象 
+     */  
+    public static Connection getConnected(){  
+        Connection conn = null;  
+        conn = tl.get();        //第一步：从ThreadLocal对象当中去获取  
+        if(conn == null){       //若没有获取到，原始方法获取  
+            try {  
+                conn = DriverManager.getConnection("jdbc:oracle:thin:@192.168.122.1:1521/xe","store","store_password");  
+                //获取连接对象以后，都设置为默认手动提交  
+                conn.setAutoCommit(false);    
+                //第二部：将连接对象放入对应的ThreadLocal泛型对象tl当中(进而绑定到使用它的线程对象上)  
+                tl.set(conn);  
+            } catch (SQLException e) {  
+                e.printStackTrace();  
+            }  
+        }  
+        return conn;  
+    }  
+  
+    /* 
+     * 关闭数据库的连接，并删除对应的ThreadLocal中的对象 
+     */  
+    public static void closeConnection(){  
+        Connection conn = null;  
+        conn = tl.get();        //第三步：使用完毕，再次获取对象  
+        if(conn != null){  
+            tl.remove();        //第四步：线程操作数据库完毕，移除  
+            try {  
+                conn.close();  
+            } catch (SQLException e) {  
+                e.printStackTrace();  
+            }  
+        }  
+    }  
+}  
+```
+
+上述例子中使用ThreadLocal类来绑定对应线程和Connection之间的关系，确保访问数据库数据的安全性问题；大家想象一下，如果没有使用ThreadLocal类来绑定，那么多个线程同时进入getConnected()方法，有可能获取的是同一个Connection对象，导致线程不安全问题。
 
 # 五、ThreadLocal使用注意事项
 

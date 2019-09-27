@@ -200,6 +200,8 @@ https://www.runoob.com/http/http-methods.html
 
 https://cloud.tencent.com/developer/article/1342941
 
+## 10.**一个http请求发送到后端的详细过程**
+
 # HTTP原理
 
 HTTP：当用户在浏览器的地址栏中输入所要访问Web的URL以后，HTTP的处理过程即会开始，HTTP中默认的端口是**80端口**，它的工作机制，首先是客户端向服务器的80端口建立一个TCP连接，然后再这个连接上进行请求和应答以及数据报文的发送。具体过程成如下：
