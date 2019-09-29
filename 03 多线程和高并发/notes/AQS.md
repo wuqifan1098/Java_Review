@@ -47,9 +47,7 @@ AQS（AbstractQueuedSynchronizer）就是抽象队列式的同步器，**就是�
 
 读读共享，读写互斥，写写互斥
 
-# 前言
 
-​    在java中有很多锁结构都继承自AQS(AbstractQueuedSynchronizer)这个抽象类如果我们仔细了解可以发现AQS的作用是非常大的，但是AQS的底层其实也是使用了大量的CAS，因此我们可以看到CAS的重要性了，但是CAS也是有缺陷的，但是在大部分使用的情况下，我们往往忽略了这种缺陷。
 
 ## AQS的认识
 
@@ -593,8 +591,6 @@ class Mutex implements Lock, java.io.Serializable {
 ​    Java提供了一个基于AQS到读写锁实现ReentrantReadWriteLock，该读写锁到实现原理是：**将同步变量state按照高16位和低16位进行拆分，高16位表示读锁，低16位表示写锁。**
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201810/1157683-20181028173945971-354373046.png)
-
- 
 
 ```
  一次只有一个线程可以占有写模式的读写锁, 但是可以有多个线程同时占有读模式的读写锁. 正是因为这个特性：

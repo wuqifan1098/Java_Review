@@ -10,7 +10,7 @@
 
 https://www.zhihu.com/question/27876575
 
-## 2.MVCC怎么实现的，解决什么问题
+## 2. MVCC怎么实现的，解决什么问题
 
 **MVCC是通过保存数据在某个时间点的快照来实现的**.
 
@@ -18,7 +18,7 @@ https://www.zhihu.com/question/27876575
 
 https://www.cnblogs.com/shoshana-kong/p/11244612.html
 
-在开启事务时，对操作记录加行锁，事务结束时释放锁。但是这样加锁会降低事务的并发量，并且对线程的阻塞和恢复操作也会损耗性能。那种在事务中使用了select …… for update/ lock in share mode 的就是对记录使用了行锁，实现一致性锁定读。而对于未加锁的记录，在innodb中的repeatable read级别下会通过mvcc进行并发控制，实现一致性非锁定读。
+**在开启事务时，对操作记录加行锁，事务结束时释放锁。**但是这样加锁会降低事务的并发量，并且对线程的阻塞和恢复操作也会损耗性能。那种在事务中使用了select …… for update/ lock in share mode 的就是对记录使用了行锁，实现一致性锁定读。而对于未加锁的记录，在innodb中的repeatable read级别下会通过mvcc进行并发控制，实现一致性非锁定读。
 
 原文链接：https://blog.csdn.net/zuhizo/article/details/80852423
 

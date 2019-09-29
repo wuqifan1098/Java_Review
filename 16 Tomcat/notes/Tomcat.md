@@ -1,28 +1,114 @@
-## 沉淀再出发：Tomcat的实现原理
+# 面试题
 
-### 一、前言
+## 1. 讲讲tomcat（大华）
 
-​    在我们接触java之后，相信大家都编写过服务器程序，这个时候就需要用到Tomcat了。Tomcat 服务器是一个开源的轻量级Web应用服务器，在中小型系统和并发量小的场合下被普遍使用，是开发和调试Servlet、JSP 程序的首选。
+# Tomcat的基本原理
 
-### 二、Tomcat的基本原理
-
-####  2.1、Tomcat的架构
+##  Tomcat的架构
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111152014980-134475588.png)
 
    **Tomcat主要组件：服务器Server，服务Service，连接器Connector、容器Container。**
    **连接器Connector和容器Container是Tomcat的核心。**
 
+- Server：服务器的意思，代表整个tomcat服务器，一个tomcat只有一个Server；
+- Service：Server中的一个逻辑功能层， **一个Server可以包含多个Service**；
+- Connector：称作连接器，是Service的核心组件之一，一个Service可以有多个Connector，主要是**连接客户端请求**；
+- Container：Service的另一个核心组件，按照层级有Engine，Host，Context，Wrapper四种，一个Service只有一个
+- Engine，其主要作用是**执行业务逻辑**；
+- Jasper：JSP引擎；
+- Session：会话管理；
+  
+
    **Tomcat 还有其它重要的组件，如安全组件 security、logger 日志组件、session、mbeans、naming 等其它组件。这些组件共同为 Connector 和 Container 提供必要的服务。**
    一个Container容器和一个或多个Connector组合在一起，加上其他一些支持的组件共同组成一个Service服务，有了Service服务便可以对外提供能力了，但是Service服务的生存需要一个环境，这个环境便是Server，Server组件为Service服务的正常使用提供了生存环境，Server组件可以同时管理一个或多个Service服务。
 
-####  2.2、Connector
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<Server port="8005" shutdown="SHUTDOWN">
+    <Listener className="org.apache.catalina.startup.VersionLoggerListener"/>
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on"/>
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener"/>
 
-​    一个Connecter将在某个指定的端口上侦听客户请求，接收浏览器的发过来的 tcp 连接请求，创建一个 Request 和 Response 对象分别用于和请求端交换数据，然后会产生一个线程来处理这个请求并把产生的 Request 和 Response 对象传给处理Engine(Container中的一部分)，从Engine出获得响应并返回客户。 Tomcat中有两个经典的Connector，一个直接侦听来自Browser的HTTP请求，另外一个来自其他的WebServer请求。HTTP/1.1 Connector在端口8080处侦听来自客户Browser的HTTP请求，AJP/1.3 Connector在端口8009处侦听其他Web Server（其他的HTTP服务器）的Servlet/JSP请求。 Connector 最重要的功能就是接收连接请求然后分配线程让 Container 来处理这个请求，所以这必然是多线程的，多线程的处理是 Connector 设计的核心。
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml"/>
+    </GlobalNamingResources>
 
-![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111164520911-620037352.png)
+    <Service name="Catalina">
+        <Connector port="8080" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   redirectPort="8443"/>
+        <Connector port="8009" protocol="AJP/1.3" redirectPort="8443"/>
+        <Engine name="Catalina" defaultHost="localhost">
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                       resourceName="UserDatabase"/>
+            </Realm>
 
-####  2.3、Container容器
+            <Host name="localhost" appBase="webapps"
+                  unpackWARs="true" autoDeploy="true">
+                <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+                       prefix="localhost_access_log" suffix=".txt"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
+            </Host>
+        </Engine>
+    </Service>
+</Server>
+
+```
+
+## Service
+
+可以想象，一个Server服务器，它最基本的功能肯定是：
+
+> 接收客户端的请求，然后解析请求，完成相应的业务逻辑，然后把处理后的结果返回给客户端，一般会提供两个节本方法，一个start打开服务Socket连接，监听服务端口，一个stop停止服务释放网络资源。
+
+这时的服务器就是一个Server类：
+
+但如果将请求监听和请求处理放在一起，扩展性会变差，毕竟网络协议不止HTTP一种，如果想适配多种网络协议，请求处理又相同，这时就无能为力了，tomcat的设计大师不会采取这种做法，而是将请求监听和请求处理分开为两个模块，分别是Connector和Container，**Connector负责处理请求监听，Container负责处理请求处理。**
+
+但显然tomcat可以有多个Connector，同时Container也可以有多个。那这就存在一个问题，哪个Connector对应哪个Container，提供复杂的映射吗？相信看过server.xml文件的人已经知道了tomcat是怎么处理的了。
+
+没错，Service就是这样来的。在conf/server.xml文件中，可以看到Service组件包含了Connector组件和Engine组件（前面有提过，Engine就是一种容器），即Service相当于Connector和Engine组件的包装器，将一个或者多个Connector和一个Engine建立关联关系。在默认的配置文件中，定义了一个叫Catalina 的服务，它将HTTP/1.1和AJP/1.3这两个Connector与一个名为Catalina 的Engine关联起来。
+
+**一个Server可以包含多个Service（它们相互独立，只是公用一个JVM及类库），一个Service负责维护多个Connector和一个Container。**
+
+其标准实现是StandardService，UML类图如下：
+
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190929171259.png)
+
+这时tomcat就是这样了：
+
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190929171228.png)
+
+## Connector
+
+前面介绍过Connector是连接器，用于接受请求并将请求封装成Request和Response，然后交给Container进行处理，Container处理完之后在交给Connector返回给客户端。
+
+一个Connector会**监听一个独立的端口来处理来自客户端的请求**。server.xml默认配置了两个Connector：
+
+- <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443"/>，它监听端口8080,这个端口值可以修改，connectionTimeout定义了连接超时时间，单位是毫秒，redirectPort 定义了ssl的重定向接口，根据上述配置，Connector会将ssl请求转发到8443端口。
+- <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />, AJP表示Apache Jserv Protocol，它将处理Tomcat和Apache http服务器之间的交互，此连接器用于处理我们将Tomcat和Apache http服务器结合使用的情况，如在同一台物理Server上部署一个Apache http服务器和多台Tomcat服务器，通过Apache服务器来处理静态资源以及负载均衡时，针对不同的Tomcat实例需要AJP监听不同的端口。
+
+Connector在tomcat中的设计比较复杂，先大致列上一个图：
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190929171435.png)
+
+Connector使用ProtocolHandler来处理请求的，不同的ProtocolHandler代表不同的连接类型，比如：Http11Protocol使用的是普通Socket来连接的（tomcat9已经删除了这个类，不再采用BIO的方式），Http11NioProtocol使用的是NioSocket来连接的。
+
+其中ProtocolHandler由包含了三个部件：Endpoint、Processor、Adapter。
+
+1. Endpoint用来处理底层Socket的网络连接，Processor用于将Endpoint接收到的Socket封装成Request（这个Request和ServletRequest无关），Adapter充当适配器，用于将Request转换为ServletRequest交给Container进行具体的处理。
+2. Endpoint由于是处理底层的Socket网络连接，因此Endpoint是用来实现TCP/IP协议的，而Processor用来实现HTTP协议的，Adapter将请求适配到Servlet容器进行具体的处理。
+3. Endpoint的抽象实现AbstractEndpoint里面定义的Acceptor和AsyncTimeout两个内部类和一个Handler接口。Acceptor用于监听请求，AsyncTimeout用于检查异步Request的超时，Handler用于处理接收到的Socket，在内部调用Processor进行处理。
+   
+
+##  Container
 
 ​    **Container是容器的父接口，**该容器的设计用的是典型的**责任链的设计模式**，它由四个自容器组件构成，分别是**Engine、Host、Context、Wrapper**。这四个组件是负责关系，存在包含关系。***通常一个Servlet class对应一个Wrapper，如果有多个Servlet定义多个Wrapper，***如果有多个Wrapper就要定义一个更高的Container，如Context。 Context 还可以定义在父容器 Host 中，一个Host可以对应多个Context，Host 不是必须的，但是要运行 war 程序，就必须要 Host，因为 war 中必有 web.xml 文件，这个文件的解析就需要 Host 了，***如果要有多个 Host 就要定义一个 top 容器 Engine 了***。而 Engine 没有父容器了，一个 Engine 代表一个完整的 Servlet 引擎。
 
@@ -35,17 +121,14 @@
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111152019164-1364893646.png)
 
-#### 2.4、HTTP请求过程
+## HTTP请求过程
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111152024363-1479165699.png)
 
 ​    **Tomcat Server处理一个HTTP请求的过程：**
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-```
  1 用户点击网页内容，请求被发送到本机端口8080，被在那里监听的Coyote HTTP/1.1 Connector获得。
- 2 Connector把该请求交给它所在的Service的Engine来处理，并等待Engine的回应。
+ 2 Connector把该请求交给**它所在的Service的Engine来处理，并等待Engine的回应**。
  3 Engine获得请求localhost/test/index.jsp，匹配所有的虚拟主机Host。
  4 Engine匹配到名为localhost的Host（即使匹配不到也把请求交给该Host处理，因为该Host被定义为该Engine的默认主机），名为localhost的Host获得请求/test/index.jsp，匹配它所拥有的所有的Context。Host匹配到路径为/test的Context（如果匹配不到就把该请求交给路径名为“ ”的Context去处理）。
  5 path=“/test”的Context获得请求/index.jsp，在它的mapping table中寻找出对应的Servlet。Context匹配到URL PATTERN为*.jsp的Servlet,对应于Jsp的Servlet类。
@@ -54,15 +137,17 @@
  8 Host把HttpServletResponse对象返回给Engine。
  9 Engine把HttpServletResponse对象返回Connector。
 10 Connector把HttpServletResponse对象返回给客户Browser。
-```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+## Tomncat启动流程
 
-####  2.5、server.xml配置
+tomcat的启动流程很标准化，入口是BootStrap，统一按照生命周期管理接口Lifecycle的定义进行启动。首先，调用init()方法逐级初始化，接着调用start()方法进行启动，同时，每次调用伴随着生命周期状态变更事件的触发。
+
+每一级组件除完成自身的处理外，还有负责调用子组件的相关调用，组件和组件之间是松耦合的，可以通过配置进行修改。
+![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/20190929171745.png)
+
+##  server.xml配置
 
 ![img](https://img2018.cnblogs.com/blog/1157683/201811/1157683-20181111155319826-1701278516.png)
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
 
 ```
  1  1、Server：server.xml的最外层元素。常用属性：
@@ -126,26 +211,22 @@
 59 12. Valve可以理解为Tomcat的拦截器，而我们常用filter为项目内的拦截器。Valve可以用于Tomcat的日志、权限等。Valve可嵌在Engine、Host、Context内。
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
    **下面看一个server.xml配置实例：**
 
 ![img](https://images.cnblogs.com/OutliningIndicators/ContractedBlock.gif) server.xml配置实例
 
-####  2.6、Tomcat 日志概述
+##  Tomcat 日志概述
 
 ​    **日志分为两种，系统日志和控制台日志。**
 ​    系统日志主要包含运行中日志和访问日志，分为5类：**catalina、localhost、manager、localhost_access、host-manager**，在logging.properties文件中进行配置。控制台日志包含了catalina日志，另外包含了程序输出的日志（System打印，Console），可以将其日志配置输出到文件catalina.out中。
 
-#### 日志级别分为如下 7 种：
+### 日志级别分为如下 7 种
 
 ```
     SEVERE (highestvalue) > WARNING > INFO > CONFIG > FINE > FINER > FINEST (lowest value)
 ```
 
-#### 系统日志：
-
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
+### 系统日志
 
 ```
 1     1、catalina日志
@@ -158,12 +239,12 @@
 8         Tomcat下默认manager应用日志
 ```
 
-[![复制代码](https://common.cnblogs.com/images/copycode.gif)](javascript:void(0);)
-
-#### 控制台日志：
+### 控制台日志
 
 ​    在Linux系统中，Tomcat 启动后默认将很多信息都写入到 catalina.out 文件中，我们可以通过tail  -f  catalina.out 来跟踪Tomcat 和相关应用运行的情况。 在windows下，我们使用startup.bat启动Tomcat以后，会发现catalina日志与Linux记录的内容有很大区别，大多信息只输出到屏幕而没有记录到catalina.out里面。，可以通过设置来做到这一点。
 
-### 三、总结
+## 总结
 
-​     **在这里我们了解了Tomcat的基本框架和运行的机制，以及相关文件的配置和日志的配置，对于Tomcat的源码如果我们仔细研读的话一定会受益匪浅的。**
+​     在这里我们了解了Tomcat的基本框架和运行的机制，以及相关文件的配置和日志的配置，对于Tomcat的源码如果我们仔细研读的话一定会受益匪浅的。
+
+https://blog.csdn.net/w1992wishes/article/details/79242797
