@@ -18,6 +18,7 @@ public class addList(ListNode l1, ListNode l2){
 	ListNode head = new ListNode(0);
     ListNode p = l1;
     ListNode q = l2;
+    ListNode cur = head;
     int carry = 0;
     while(p != null || q != null){
         int x = (p != null)? p.val : 0;
@@ -211,6 +212,29 @@ class Solution {
             cur = next;
         }
         return pre;
+    }
+}
+```
+
+# [141. 环形链表](https://leetcode-cn.com/problems/linked-list-cycle/)
+
+给定一个链表，判断链表中是否有环。
+
+为了表示给定链表中的环，我们使用整数 pos 来表示链表尾连接到链表中的位置（索引从 0 开始）。 如果 pos 是 -1，则在该链表中没有环。
+
+快慢指针
+
+```java
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        while(fast != null && fast.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+            if(fast == slow)return true;
+        }
+        return false;
     }
 }
 ```

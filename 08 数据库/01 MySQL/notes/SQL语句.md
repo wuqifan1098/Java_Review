@@ -39,3 +39,24 @@ having 子句中的每一个元素也必须出现在select列表中。有些数�
 
 https://blog.csdn.net/alice_tl/article/details/88764591
 
+## 3.分页怎么做
+
+**select \* from table limit (start-1)\*pageSize,pageSize;** 其中**start**是页码，**pageSize**是每页显示的条数。
+
+https://www.cnblogs.com/youyoui/p/7851007.html
+
+Mybatis中有分页插件
+
+```java
+<!-- 分页插件 -->
+<dependency>
+    <groupId>com.github.pagehelper</groupId>
+    <artifactId>pagehelper</artifactId>
+    <version>5.0.0</version>
+</dependency>
+```
+
+http://www.ciphermagic.cn/mybatis-page-2.html
+
+## 4.聚合函数
+

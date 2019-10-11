@@ -58,6 +58,16 @@ cat -n service.log | tail -n +29496 | head -n 20:从29496行开始检索，往�
 
 https://www.jianshu.com/p/8a6ac20b945f
 
+1、先切换到：cd usr/local/tomcat5/logs
+2、tail -f catalina.out
+3、这样运行时就可以实时查看运行日志了
+
+http://bbs.elecfans.com/jishu_1803482_1_1.html
+
+**循环查看文件内容**
+**命令：**
+tail -f test.log
+
 ## 5. 查看进程和端口
 
 查进程有两个命令：
