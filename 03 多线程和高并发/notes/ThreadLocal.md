@@ -71,6 +71,15 @@ public void remove() { }
 protected T initialValue() { }
 ```
 
+值真正是放在ThreadLocalMap 中存取的，ThreadLocalMap 内部类有一个Entry 类，key是ThreadLocal 对象，value 就是你要存放的值，上面的代码value 存放的就是hello word。ThreadLocalMap 和HashMap的功能类似，但是实现上却有很大的不同：
+
+1. HashMap 的数据结构是数组+链表
+2. ThreadLocalMap的数据结构仅仅是数组
+3. HashMap 是通过链地址法解决hash 冲突的问题
+4. ThreadLocalMap 是通过开放地址法来解决hash 冲突的问题
+5. HashMap 里面的Entry 内部类的引用都是强引用
+6. ThreadLocalMap里面的Entry 内部类中的key 是弱引用，value 是强引用
+
 1.ThreadLocal set  
 
 ```java

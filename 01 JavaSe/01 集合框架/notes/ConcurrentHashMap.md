@@ -92,6 +92,10 @@ https://www.cnblogs.com/yangfeiORfeiyang/p/9694383.html
 
 https://www.cnblogs.com/lfs2640666960/p/9621461.html
 
+## 10. 为什么ConcurrentHashMap不支持null key value时
+
+ConcurrentHashMap不能put null 是因为 无法分辨是key没找到的null还是有key值为null，这在多线程里面是模糊不清的，所以压根就不让put null。
+
 # 1.存储结构
 
 ![](https://raw.githubusercontent.com/wuqifan1098/picBed/master/Concurrenthashmap-ds.png)
